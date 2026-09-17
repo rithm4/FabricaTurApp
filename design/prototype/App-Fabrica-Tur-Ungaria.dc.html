@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="crossorigin">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<style>
+  body{margin:0;background:#EEF4F3;-webkit-font-smoothing:antialiased}
+  *{box-sizing:border-box}
+  a{color:#0A4F4D;text-decoration:none}
+  a:hover{color:#119A93}
+  button{font-family:inherit}
+  *::-webkit-scrollbar{width:0;height:0;display:none}
+  *{scrollbar-width:none;-ms-overflow-style:none}
+</style>
+</helmet>
+
+<div style="font-family:'Manrope',sans-serif;color:#16161A;background:#EEF4F3;min-height:100vh;padding:clamp(20px,3vw,40px)">
+
+  <div style="max-width:1180px;margin:0 auto 26px;display:flex;flex-wrap:wrap;gap:18px;align-items:center;justify-content:space-between">
+    <div style="display:flex;align-items:center;gap:14px">
+      <img src="https://static.tildacdn.com/tild6133-6363-4666-b536-336331643036/logo1.png" alt="Fabrica Tur" style="height:34px;width:auto;display:block" />
+      <div>
+        <div style="font-size:11px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:#0A4F4D">Aplicație · Ungaria</div>
+        <div style="font-size:14px;color:#5A6B68;font-weight:600">Stațiuni balneare · notificări despre promoții</div>
+      </div>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:10px">
+      <div style="display:flex;background:#fff;border:1px solid #D6E6E3;border-radius:12px;padding:4px;gap:4px">
+        <button type="button" onClick="{{ setIos }}" style="{{ iosTabStyle }}">iOS</button>
+        <button type="button" onClick="{{ setAndroid }}" style="{{ androidTabStyle }}">Android</button>
+      </div>
+      <div style="display:flex;background:#fff;border:1px solid #D6E6E3;border-radius:12px;padding:4px;gap:4px">
+        <button type="button" onClick="{{ setRo }}" style="{{ roTabStyle }}">RO</button>
+        <button type="button" onClick="{{ setRu }}" style="{{ ruTabStyle }}">RU</button>
+      </div>
+    </div>
+  </div>
+
+  <div style="max-width:1180px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:26px;align-items:start">
+
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <div style="font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#0A4F4D;margin-bottom:4px">Ecrane</div>
+      <sc-for list="{{ menu }}" as="item" hint-placeholder-count="9">
+        <button type="button" onClick="{{ item.go }}" style="{{ item.style }}">
+          <span style="font-size:11px;font-weight:800;color:#9BB0AC;width:18px;text-align:left">{{ item.num }}</span>
+          <span>{{ item.label }}</span>
+        </button>
+      </sc-for>
+      <div style="margin-top:12px;background:#fff;border:1px solid #D6E6E3;border-radius:14px;padding:16px">
+        <div style="font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#0A4F4D;margin-bottom:8px">Prototip</div>
+        <p style="font-size:13.5px;line-height:1.6;color:#5A6B68;margin:0">Butoanele din ecrane sunt active: apasă pe carduri, pe bara de jos și pe „Permite notificările” ca să navighezi.</p>
+      </div>
+    </div>
+
+    <div style="display:flex;justify-content:center;grid-column:span 2;min-width:0;height:620px">
+      <div style="transform:scale(.7);transform-origin:top center">
+      <x-import component-from-global-scope="{{ frame }}" from="./ios-frame.jsx ./android-frame.jsx" hint-size="393px,852px">
+
+        <div style="{{ scrOnboarding }}">
+          <div style="flex:1;position:relative;display:flex;flex-direction:column;background:#04302F url(https://static.tildacdn.com/tild6234-3034-4162-a665-353738336131/8b1715ab-4e4d-422d-8.png) center/cover no-repeat">
+            <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(4,48,47,.55) 0%,rgba(4,48,47,.28) 38%,rgba(4,48,47,.92) 100%)"></div>
+            <div style="position:relative;display:flex;flex-direction:column;flex:1;padding:22px 22px 24px">
+              <img src="https://static.tildacdn.com/tild6133-6363-4666-b536-336331643036/logo1.png" alt="Fabrica Tur" style="height:34px;width:auto;align-self:flex-start;flex:none;display:block;background:rgba(255,255,255,.94);padding:7px 12px;border-radius:12px" />
+              <div style="margin-top:auto;color:#fff">
+                <div style="display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.34);backdrop-filter:blur(8px);padding:9px 15px;border-radius:100px;font-size:12.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase">{{ t.onbBadge }}</div>
+                <div style="font-weight:800;font-size:32px;line-height:1.12;letter-spacing:-.025em;margin-top:16px;text-shadow:0 2px 18px rgba(0,0,0,.45)">{{ t.onbTitle }}</div>
+                <div style="font-size:17.5px;line-height:1.5;color:#E4F4F1;font-weight:500;margin-top:10px">{{ t.onbText }}</div>
+                <div style="display:flex;flex-direction:column;gap:9px;margin-top:20px">
+                  <div style="display:flex;align-items:center;gap:11px;font-size:16px;font-weight:700"><i data-lucide="tag" style="flex:none;display:inline-flex;width:19px;height:19px;color:#7DF4D2;stroke-width:2"></i>{{ t.onbP1 }}</div>
+                  <div style="display:flex;align-items:center;gap:11px;font-size:16px;font-weight:700"><i data-lucide="calendar-days" style="flex:none;display:inline-flex;width:19px;height:19px;color:#7DF4D2;stroke-width:2"></i>{{ t.onbP2 }}</div>
+                  <div style="display:flex;align-items:center;gap:11px;font-size:16px;font-weight:700"><i data-lucide="users" style="flex:none;display:inline-flex;width:19px;height:19px;color:#7DF4D2;stroke-width:2"></i>{{ t.onbP3 }}</div>
+                </div>
+                <button type="button" onClick="{{ goHome }}" style="width:100%;margin-top:22px;display:flex;align-items:center;gap:12px;padding:8px 8px 8px 10px;border:1px solid rgba(255,255,255,.34);border-radius:100px;background:rgba(255,255,255,.16);backdrop-filter:blur(10px);cursor:pointer">
+                  <span style="flex:none;width:48px;height:48px;border-radius:50%;background:#7DF4D2;display:flex;align-items:center;justify-content:center"><i data-lucide="bell" style="flex:none;display:inline-flex;width:22px;height:22px;color:#06302F;stroke-width:2"></i></span>
+                  <span style="flex:1;text-align:left;color:#fff;font-family:Manrope,sans-serif;font-weight:800;font-size:17px">{{ t.onbAllow }}</span>
+                  <span style="flex:none;width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center"><i data-lucide="chevrons-right" style="flex:none;display:inline-flex;width:22px;height:22px;color:#fff;stroke-width:2"></i></span>
+                </button>
+                <button type="button" onClick="{{ goHome }}" style="width:100%;min-height:48px;margin-top:8px;border:none;background:transparent;color:#CDEAE6;font-family:Manrope,sans-serif;font-weight:700;font-size:16px;cursor:pointer">{{ t.onbLater }}</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="{{ scrHome }}">
+          <div style="flex:1;overflow:auto;background:#F2F6F5">
+            <div style="padding:18px 20px 16px;background:#fff">
+              <div style="display:flex;align-items:center;gap:12px">
+                <span style="flex:none;display:flex;width:48px;height:48px;border-radius:50%;background:linear-gradient(140deg,#E9FBF5,#BFEDE3);align-items:center;justify-content:center;font-weight:800;font-size:17px;color:#0A4F4D">IP</span>
+                <div style="flex:1;min-width:0">
+                  <div style="font-size:14.5px;color:#5A6B68;font-weight:700">{{ t.hello }}</div>
+                  <div style="font-weight:800;font-size:19px;line-height:1.2">Ion Popescu</div>
+                </div>
+                <button type="button" onClick="{{ goNotif }}" style="position:relative;flex:none;width:48px;height:48px;border-radius:50%;border:1px solid #D6E6E3;background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer">
+                  <i data-lucide="bell" style="flex:none;display:inline-flex;width:22px;height:22px;color:#0A4F4D;stroke-width:2"></i>
+                  <span style="position:absolute;top:9px;right:10px;width:10px;height:10px;border-radius:50%;background:#FF6A3D;border:2px solid #fff"></span>
+                </button>
+              </div>
+              <div style="font-weight:800;font-size:26px;line-height:1.14;letter-spacing:-.02em;margin-top:16px">{{ t.homeTitle }}</div>
+              <div style="display:flex;gap:8px;margin-top:14px;overflow:auto;padding-bottom:2px">
+                <span style="flex:none;background:#0A4F4D;color:#fff;font-size:14.5px;font-weight:800;padding:11px 17px;border-radius:100px">{{ t.filterAll }}</span>
+                <span style="flex:none;background:#fff;border:none;background:#E7EFED;color:#33514D;font-size:14.5px;font-weight:800;padding:11px 17px;border-radius:100px">{{ t.filterSpine }}</span>
+                <span style="flex:none;background:#fff;border:none;background:#E7EFED;color:#33514D;font-size:14.5px;font-weight:800;padding:11px 17px;border-radius:100px">{{ t.filterJoints }}</span>
+                <span style="flex:none;background:#fff;border:none;background:#E7EFED;color:#33514D;font-size:14.5px;font-weight:800;padding:11px 17px;border-radius:100px">{{ t.filterRecovery }}</span>
+              </div>
+            </div>
+            <div style="padding:18px 20px 26px;display:flex;flex-direction:column;gap:14px">
+              <button type="button" onClick="{{ goPromo }}" style="position:relative;text-align:left;border:none;padding:0;background:#fff;cursor:pointer;border-radius:24px;box-shadow:0 20px 42px -26px rgba(10,79,77,.55)">
+                <div style="position:relative;height:172px;border-radius:24px 24px 0 0;background:#0B0B0D url(https://static.tildacdn.com/tild6234-3034-4162-a665-353738336131/8b1715ab-4e4d-422d-8.png) center/cover no-repeat">
+                  <span style="position:absolute;left:14px;top:14px;display:inline-flex;align-items:center;gap:7px;background:rgba(255,255,255,.94);color:#0A4F4D;font-size:13.5px;font-weight:800;padding:8px 13px;border-radius:100px"><i data-lucide="star" style="flex:none;display:inline-flex;width:15px;height:15px;color:#FF9E1B;stroke-width:2"></i>8,9</span>
+                  <span style="position:absolute;right:14px;top:14px;background:#FF6A3D;color:#fff;font-size:12.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;padding:8px 13px;border-radius:100px">{{ t.homeBadgePromo }}</span>
+                  <span style="position:absolute;left:14px;bottom:-22px;display:flex;align-items:center;gap:10px;background:#fff;border-radius:100px;padding:9px 16px 9px 10px;box-shadow:0 12px 26px -14px rgba(10,79,77,.5)">
+                    <span style="flex:none;width:34px;height:34px;border-radius:50%;background:linear-gradient(140deg,#E9FBF5,#BFEDE3);display:flex;align-items:center;justify-content:center"><i data-lucide="waves" style="flex:none;display:inline-flex;width:17px;height:17px;color:#0A4F4D;stroke-width:2"></i></span>
+                    <span style="font-weight:800;font-size:19px;color:#0A4F4D">542 €</span>
+                    <span style="font-size:14.5px;color:#9BB0AC;text-decoration:line-through;font-weight:700">610 €</span>
+                  </span>
+                </div>
+                <div style="padding:34px 18px 20px">
+                  <div style="font-weight:800;font-size:19.5px;line-height:1.25;color:#16161A">{{ t.promoTitle }}</div>
+                  <div style="font-size:15.5px;color:#5A6B68;line-height:1.5;margin-top:7px;font-weight:600">{{ t.promoSub }}</div>
+                </div>
+              </button>
+
+              <div style="background:#fff;border:none;border-radius:24px;box-shadow:0 12px 30px -22px rgba(10,79,77,.5);padding:16px">
+                <div style="display:flex;align-items:center;gap:12px">
+                  <span style="flex:none;display:flex;width:44px;height:44px;border-radius:14px;background:linear-gradient(140deg,#E9FBF5,#C2EDE3);align-items:center;justify-content:center"><i data-lucide="clock" style="display:inline-flex;width:21px;height:21px;color:#0A4F4D;stroke-width:2"></i></span>
+                  <div style="min-width:0">
+                    <div style="font-weight:800;font-size:17px;line-height:1.3">{{ t.homeSeats }}</div>
+                    <div style="font-size:15px;color:#5A6B68;font-weight:600;margin-top:2px">{{ t.homeSeatsSub }}</div>
+                  </div>
+                </div>
+              </div>
+
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-top:6px">
+                <div style="font-weight:800;font-size:21px;letter-spacing:-.02em">{{ t.homeResorts }}</div>
+                <button type="button" onClick="{{ goList }}" style="border:none;background:transparent;color:#119A93;font-weight:800;font-size:15px;cursor:pointer">{{ t.seeAll }}</button>
+              </div>
+
+              <button type="button" onClick="{{ goResort }}" style="position:relative;display:block;text-align:left;border:none;padding:0;cursor:pointer;height:168px;border-radius:26px;overflow:hidden;background:#0B0B0D url(https://static.tildacdn.com/tild6234-3034-4162-a665-353738336131/8b1715ab-4e4d-422d-8.png) center/cover no-repeat;box-shadow:0 16px 36px -24px rgba(10,79,77,.6)">
+                <span style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(4,48,47,.05) 30%,rgba(4,48,47,.88) 100%)"></span>
+                <span style="position:absolute;right:13px;top:13px;background:rgba(255,255,255,.94);color:#0A4F4D;font-size:14px;font-weight:800;padding:8px 13px;border-radius:100px">542 €</span>
+                <span style="position:absolute;left:16px;right:16px;bottom:14px;display:block;color:#fff">
+                  <span style="display:block;font-family:Manrope,sans-serif;font-weight:800;font-size:20px;line-height:1.2">Hotel Kumánia</span>
+                  <span style="display:flex;align-items:center;gap:6px;font-size:14.5px;font-weight:700;color:#CDEAE6;margin-top:4px"><i data-lucide="map-pin" style="flex:none;display:inline-flex;width:15px;height:15px;color:#7DF4D2;stroke-width:2"></i>Kisújszállás</span>
+                  <span style="display:inline-flex;align-items:center;margin-top:9px;background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.34);backdrop-filter:blur(6px);color:#fff;font-size:12.5px;font-weight:800;padding:6px 11px;border-radius:100px">{{ t.tag3in1 }}</span>
+                </span>
+              </button>
+              <button type="button" onClick="{{ goResort }}" style="position:relative;display:block;text-align:left;border:none;padding:0;cursor:pointer;height:168px;border-radius:26px;overflow:hidden;background:#0B0B0D url(https://static.tildacdn.com/tild6661-6137-4938-b333-623261306665/8a19c449-f9d1-4a18-9.png) center/cover no-repeat;box-shadow:0 16px 36px -24px rgba(10,79,77,.6)">
+                <span style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(4,48,47,.05) 30%,rgba(4,48,47,.88) 100%)"></span>
+                <span style="position:absolute;right:13px;top:13px;background:rgba(255,255,255,.94);color:#0A4F4D;font-size:14px;font-weight:800;padding:8px 13px;border-radius:100px">575 €</span>
+                <span style="position:absolute;left:16px;right:16px;bottom:14px;display:block;color:#fff">
+                  <span style="display:block;font-family:Manrope,sans-serif;font-weight:800;font-size:20px;line-height:1.2">Hajdúszoboszló</span>
+                  <span style="display:flex;align-items:center;gap:6px;font-size:14.5px;font-weight:700;color:#CDEAE6;margin-top:4px"><i data-lucide="map-pin" style="flex:none;display:inline-flex;width:15px;height:15px;color:#7DF4D2;stroke-width:2"></i>Hungarospa</span>
+                  <span style="display:inline-flex;align-items:center;margin-top:9px;background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.34);backdrop-filter:blur(6px);color:#fff;font-size:12.5px;font-weight:800;padding:6px 11px;border-radius:100px">{{ t.tagMedical }}</span>
+                </span>
+              </button>
+            </div>
+          </div>
+          <div style="{{ tabBar }}">
+            <button type="button" onClick="{{ goHome }}" style="{{ tabHome }}"><i data-lucide="house" style="flex:none;display:inline-flex;width:23px;height:23px;color:currentColor;stroke-width:2.1"></i><span style="{{ labHome }}">{{ t.tabHome }}</span></button>
+            <button type="button" onClick="{{ goList }}" style="{{ tabList }}"><i data-lucide="waves" style="flex:none;display:inline-flex;width:23px;height:23px;color:currentColor;stroke-width:2.1"></i><span style="{{ labList }}">{{ t.tabResorts }}</span></button>
+            <button type="button" onClick="{{ goNotif }}" style="{{ tabNotif }}"><i data-lucide="bell" style="flex:none;display:inline-flex;width:23px;height:23px;color:currentColor;stroke-width:2.1"></i><span style="{{ labNotif }}">{{ t.tabNotif }}</span></button>
+            <button type="button" onClick="{{ goProfile }}" style="{{ tabProfile }}"><i data-lucide="user-round" style="flex:none;display:inline-flex;width:23px;height:23px;color:currentColor;stroke-width:2.1"></i><span style="{{ labProfile }}">{{ t.tabProfile }}</span></button>
+          </div>
+        </div>
+
+        <div style="{{ scrList }}">
+          <div style="flex:1;overflow:auto;background:#F2F6F5">
+            <div style="padding:20px;background:#fff">
+              <div style="font-weight:800;font-size:27px;line-height:1.12;letter-spacing:-.025em">{{ t.listTitle }}</div>
+              <div style="display:flex;gap:8px;margin-top:14px;overflow:auto">
+                <span style="flex:none;background:#0A4F4D;color:#fff;font-size:14px;font-weight:800;padding:10px 16px;border-radius:100px">{{ t.filterAll }}</span>
+                <span style="flex:none;background:#E7EFED;border:none;color:#33514D;font-size:14px;font-weight:800;padding:10px 16px;border-radius:100px">{{ t.filterSpine }}</span>
+                <span style="flex:none;background:#E7EFED;border:none;color:#33514D;font-size:14px;font-weight:800;padding:10px 16px;border-radius:100px">{{ t.filterJoints }}</span>
+              </div>
+            </div>
+            <div style="padding:16px 20px 26px;display:flex;flex-direction:column;gap:14px">
+              <sc-for list="{{ resorts }}" as="r" hint-placeholder-count="4">
+                <button type="button" onClick="{{ goResort }}" style="position:relative;display:block;text-align:left;border:none;padding:0;cursor:pointer;height:196px;border-radius:28px;overflow:hidden;background:#0B0B0D;box-shadow:0 18px 40px -26px rgba(10,79,77,.6)">
+                  <span style="{{ r.photo }}"></span>
+                  <span style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(4,48,47,.06) 32%,rgba(4,48,47,.9) 100%)"></span>
+                  <span style="position:absolute;left:16px;right:16px;bottom:16px;display:flex;align-items:flex-end;justify-content:space-between;gap:12px;color:#fff">
+                    <span style="min-width:0;display:block">
+                      <span style="display:block;font-family:Manrope,sans-serif;font-weight:800;font-size:21px;line-height:1.18">{{ r.name }}</span>
+                      <span style="display:flex;align-items:center;gap:6px;font-size:14.5px;font-weight:700;color:#CDEAE6;margin-top:5px"><i data-lucide="map-pin" style="flex:none;display:inline-flex;width:15px;height:15px;color:#7DF4D2;stroke-width:2"></i>{{ r.city }}</span>
+                    </span>
+                    <span style="flex:none;background:rgba(255,255,255,.95);color:#0A4F4D;font-size:14.5px;font-weight:800;padding:9px 14px;border-radius:100px;white-space:nowrap">{{ r.price }}</span>
+                  </span>
+                </button>
+              </sc-for>
+            </div>
+          </div>
+          <div style="{{ tabBar }}">
+            <button type="button" onClick="{{ goHome }}" style="{{ tabHome }}"><i data-lucide="house" style="flex:none;display:inline-flex;width:23px;height:23px;color:currentColor;stroke-width:2.1"></i><span style="{{ labHome }}">{{ t.tabHome }}</span></button>
+            <button type="button" onClick="{{ goList }}" style="{{ tabList }}"><i data-lucide="waves" style="flex:none;display:inline-flex;width:23px;height:23px;color:currentColor;stroke-width:2.1"></i><span style="{{ labList }}">{{ t.tabResorts }}</span></button>
+            <button type="button" onClick="{{ goNotif }}" style="{{ tabNotif }}"><i data-lucide="bell" style="flex:none;display:inline-flex;width:23px;height:23px;color:currentColor;stroke-width:2.1"></i><span style="{{ labNotif }}">{{ t.tabNotif }}</span></button>
+            <button type="button" onClick="{{ goProfile }}" style="{{ tabProfile }}"><i data-lucide="user-round" style="flex:none;display:inline-flex;width:23px;height:23px;color:currentColor;stroke-width:2.1"></i><span style="{{ labProfile }}">{{ t.tabProfile }}</span></button>
+          </div>
+        </div>
+
+        <div style="{{ scrResort }}">
+          <div style="flex:1;overflow:auto;background:#F2F6F5">
+            <div style="position:relative;height:290px;background:#0B0B0D url(https://static.tildacdn.com/tild6661-6137-4938-b333-623261306665/8a19c449-f9d1-4a18-9.png) center/cover no-repeat;border-radius:0 0 26px 26px;overflow:hidden">
+              <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(4,48,47,.34) 0%,rgba(4,48,47,0) 42%,rgba(4,48,47,.78) 100%)"></div>
+              <button type="button" onClick="{{ goList }}" style="position:absolute;left:14px;top:14px;width:46px;height:46px;border-radius:50%;border:1px solid rgba(255,255,255,.5);background:rgba(255,255,255,.24);backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;cursor:pointer"><i data-lucide="arrow-left" style="flex:none;display:inline-flex;width:22px;height:22px;color:#fff;stroke-width:2"></i></button>
+              <button type="button" style="position:absolute;right:14px;top:14px;width:46px;height:46px;border-radius:50%;border:1px solid rgba(255,255,255,.5);background:rgba(255,255,255,.24);backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;cursor:pointer"><i data-lucide="heart" style="flex:none;display:inline-flex;width:21px;height:21px;color:#fff;stroke-width:2"></i></button>
+              <div style="position:absolute;left:18px;right:18px;bottom:18px;color:#fff">
+                <div style="display:flex;align-items:center;gap:7px;font-size:14.5px;font-weight:700;color:#CDEAE6"><i data-lucide="map-pin" style="flex:none;display:inline-flex;width:16px;height:16px;color:#7DF4D2;stroke-width:2"></i>Kisújszállás, {{ t.hungary }}</div>
+                <div style="font-weight:800;font-size:28px;line-height:1.14;letter-spacing:-.02em;margin-top:6px;text-shadow:0 2px 16px rgba(0,0,0,.45)">Hotel Kumánia</div>
+              </div>
+            </div>
+            <div style="padding:16px 18px 26px;display:flex;flex-direction:column;gap:16px">
+              <div style="display:flex;gap:9px">
+                <div style="flex:1;min-width:0;background:#fff;border:none;border-radius:20px;box-shadow:0 10px 24px -20px rgba(10,79,77,.5);padding:14px 12px;text-align:center">
+                  <span style="display:flex;align-items:center;justify-content:center;width:34px;height:34px;margin:0 auto 9px;border-radius:11px;background:linear-gradient(140deg,#E9FBF5,#C2EDE3)"><i data-lucide="thermometer" style="flex:none;display:inline-flex;width:19px;height:19px;color:#0A4F4D;stroke-width:2"></i></span>
+                  <span style="display:block;font-weight:800;font-size:16px;line-height:1.15">47–61 °C</span>
+                  <span style="display:block;font-size:12.5px;color:#7C8E8B;font-weight:700;line-height:1.3;margin-top:3px">{{ t.water }}</span>
+                </div>
+                <div style="flex:1;min-width:0;background:#fff;border:none;border-radius:20px;box-shadow:0 10px 24px -20px rgba(10,79,77,.5);padding:14px 12px;text-align:center">
+                  <span style="display:flex;align-items:center;justify-content:center;width:34px;height:34px;margin:0 auto 9px;border-radius:11px;background:linear-gradient(140deg,#E9FBF5,#C2EDE3)"><i data-lucide="star" style="flex:none;display:inline-flex;width:19px;height:19px;color:#0A4F4D;stroke-width:2"></i></span>
+                  <span style="display:block;font-weight:800;font-size:16px;line-height:1.15">8,9 / 10</span>
+                  <span style="display:block;font-size:12.5px;color:#7C8E8B;font-weight:700;line-height:1.3;margin-top:3px">Booking</span>
+                </div>
+                <div style="flex:1;min-width:0;background:#fff;border:none;border-radius:20px;box-shadow:0 10px 24px -20px rgba(10,79,77,.5);padding:14px 12px;text-align:center">
+                  <span style="display:flex;align-items:center;justify-content:center;width:34px;height:34px;margin:0 auto 9px;border-radius:11px;background:linear-gradient(140deg,#E9FBF5,#C2EDE3)"><i data-lucide="moon" style="flex:none;display:inline-flex;width:19px;height:19px;color:#0A4F4D;stroke-width:2"></i></span>
+                  <span style="display:block;font-weight:800;font-size:16px;line-height:1.15">7 {{ t.nights }}</span>
+                  <span style="display:block;font-size:12.5px;color:#7C8E8B;font-weight:700;line-height:1.3;margin-top:3px">{{ t.stay }}</span>
+                </div>
+              </div>
+              <div style="display:flex;gap:8px;overflow:auto;padding-bottom:2px">
+                <span style="flex:none;background:#0A4F4D;color:#fff;font-size:14.5px;font-weight:800;padding:11px 18px;border-radius:100px">{{ t.tabDetails }}</span>
+                <span style="flex:none;background:#fff;border:none;background:#E7EFED;color:#33514D;font-size:14.5px;font-weight:800;padding:11px 18px;border-radius:100px">{{ t.tabProc }}</span>
+                <span style="flex:none;background:#fff;border:none;background:#E7EFED;color:#33514D;font-size:14.5px;font-weight:800;padding:11px 18px;border-radius:100px">{{ t.tabReviews }}</span>
+              </div>
+              <div style="background:#fff;border:none;border-radius:26px;box-shadow:0 12px 30px -22px rgba(10,79,77,.5);overflow:hidden">
+                <div style="display:flex;align-items:center;gap:13px;padding:15px 16px;font-size:16.5px;font-weight:600"><i data-lucide="door-open" style="flex:none;display:inline-flex;width:20px;height:20px;color:#119A93;stroke-width:2"></i>{{ t.resortF1 }}</div>
+                <div style="display:flex;align-items:center;gap:13px;padding:15px 16px;border-top:1px solid #EFF4F3;font-size:16.5px;font-weight:600"><i data-lucide="waves" style="flex:none;display:inline-flex;width:20px;height:20px;color:#119A93;stroke-width:2"></i>{{ t.resortF2 }}</div>
+                <div style="display:flex;align-items:center;gap:13px;padding:15px 16px;border-top:1px solid #EFF4F3;font-size:16.5px;font-weight:600"><i data-lucide="stethoscope" style="flex:none;display:inline-flex;width:20px;height:20px;color:#119A93;stroke-width:2"></i>{{ t.resortF3 }}</div>
+                <div style="display:flex;align-items:center;gap:13px;padding:15px 16px;border-top:1px solid #EFF4F3;font-size:16.5px;font-weight:600"><i data-lucide="utensils" style="flex:none;display:inline-flex;width:20px;height:20px;color:#119A93;stroke-width:2"></i>{{ t.resortF4 }}</div>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+                <div style="font-weight:800;font-size:21px;letter-spacing:-.02em">{{ t.gallery }}</div>
+                <button type="button" onClick="{{ goList }}" style="border:none;background:transparent;color:#119A93;font-weight:800;font-size:15px;cursor:pointer">{{ t.seeAll }}</button>
+              </div>
+              <div style="display:flex;gap:10px;overflow:auto;padding-bottom:2px">
+                <span style="flex:none;width:132px;height:104px;border-radius:18px;background:#0B0B0D url(https://static.tildacdn.com/tild6234-3034-4162-a665-353738336131/8b1715ab-4e4d-422d-8.png) center/cover no-repeat"></span>
+                <span style="flex:none;width:132px;height:104px;border-radius:18px;background:#0B0B0D url(https://static.tildacdn.com/tild6661-6137-4938-b333-623261306665/8a19c449-f9d1-4a18-9.png) center/cover no-repeat"></span>
+                <span style="flex:none;width:132px;height:104px;border-radius:18px;background:#0B0B0D url(https://static.tildacdn.com/tild6234-3034-4162-a665-353738336131/8b1715ab-4e4d-422d-8.png) center/cover no-repeat"></span>
+              </div>
+            </div>
+          </div>
+          <div style="{{ ctaBar }}">
+            <button type="button" onClick="{{ goForm }}" style="{{ ctaPill }}">
+              <span style="flex:none;width:48px;height:48px;border-radius:50%;background:#FF6A3D;display:flex;align-items:center;justify-content:center"><i data-lucide="plus" style="flex:none;display:inline-flex;width:24px;height:24px;color:#fff;stroke-width:2"></i></span>
+              <span style="flex:1;text-align:left;min-width:0">
+                <span style="display:block;font-size:12.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#7DF4D2">{{ t.fromPrice }} 542 €</span>
+                <span style="display:block;font-family:Manrope,sans-serif;font-weight:800;font-size:17.5px;color:#fff;margin-top:2px">{{ t.askOffer }}</span>
+              </span>
+              <span style="flex:none;width:42px;height:42px;border-radius:50%;background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center"><i data-lucide="chevrons-right" style="flex:none;display:inline-flex;width:21px;height:21px;color:#fff;stroke-width:2"></i></span>
+            </button>
+          </div>
+        </div>
+
+        <div style="{{ scrNotif }}">
+          <div style="flex:1;overflow:auto;background:#F2F6F5">
+            <div style="padding:20px;background:#fff;display:flex;align-items:center;justify-content:space-between;gap:12px">
+              <div style="font-weight:800;font-size:27px;line-height:1.12;letter-spacing:-.025em">{{ t.notifTitle }}</div>
+              <button type="button" onClick="{{ goProfile }}" style="border:none;background:transparent;color:#119A93;font-weight:800;font-size:15px;cursor:pointer">{{ t.settings }}</button>
+            </div>
+            <div style="padding:14px 20px 26px;display:flex;flex-direction:column;gap:12px">
+              <sc-for list="{{ notifs }}" as="n" hint-placeholder-count="5">
+                <button type="button" onClick="{{ goPromo }}" style="display:flex;gap:13px;text-align:left;background:{{ n.bg }};border:none;border-radius:24px;padding:16px;cursor:pointer;box-shadow:0 12px 30px -24px rgba(10,79,77,.55)">
+                  <span style="flex:none;display:flex;width:48px;height:48px;border-radius:16px;background:{{ n.iconBg }};align-items:center;justify-content:center"><i data-lucide="{{ n.icon }}" style="display:inline-flex;width:21px;height:21px;color:{{ n.iconColor }};stroke-width:2"></i></span>
+                  <span style="min-width:0;display:block">
+                    <span style="display:block;font-weight:800;font-size:17px;line-height:1.3;color:#16161A">{{ n.title }}</span>
+                    <span style="display:block;font-size:15px;color:#5A6B68;font-weight:600;line-height:1.45;margin-top:3px">{{ n.text }}</span>
+                    <span style="display:block;font-size:13px;color:#9BB0AC;font-weight:700;margin-top:7px">{{ n.when }}</span>
+                  </span>
+                </button>
+              </sc-for>
+            </div>
+          </div>
+          <div style="{{ tabBar }}">
+            <button type="button" onClick="{{ goHome }}" style="{{ tabHome }}"><i data-lucide="house" style="flex:none;display:inline-flex;width:23px;height:23px;color:currentColor;stroke-width:2.1"></i><span style="{{ labHome }}">{{ t.tabHome }}</span></button>
+            <button type="button" onClick="{{ goList }}" style="{{ tabList }}"><i data-lucide="waves" style="flex:none;display:inline-flex;width:23px;height:23px;color:currentColor;stroke-width:2.1"></i><span style="{{ labList }}">{{ t.tabResorts }}</span></button>
+            <button type="button" onClick="{{ goNotif }}" style="{{ tabNotif }}"><i data-lucide="bell" style="flex:none;display:inline-flex;width:23px;height:23px;color:currentColor;stroke-width:2.1"></i><span style="{{ labNotif }}">{{ t.tabNotif }}</span></button>
+            <button type="button" onClick="{{ goProfile }}" style="{{ tabProfile }}"><i data-lucide="user-round" style="flex:none;display:inline-flex;width:23px;height:23px;color:currentColor;stroke-width:2.1"></i><span style="{{ labProfile }}">{{ t.tabProfile }}</span></button>
+          </div>
+        </div>
+
+        <div style="{{ scrPromo }}">
+          <div style="flex:1;overflow:auto;background:#F2F6F5">
+            <div style="position:relative;height:210px;background:#0B0B0D url(https://static.tildacdn.com/tild6234-3034-4162-a665-353738336131/8b1715ab-4e4d-422d-8.png) center/cover no-repeat">
+              <button type="button" onClick="{{ goNotif }}" style="position:absolute;left:14px;top:14px;width:44px;height:44px;border-radius:14px;border:none;background:rgba(255,255,255,.92);display:flex;align-items:center;justify-content:center;cursor:pointer"><i data-lucide="arrow-left" style="display:inline-flex;width:22px;height:22px;color:#0A4F4D;stroke-width:2.2"></i></button>
+              <span style="position:absolute;left:14px;bottom:14px;background:#FF6A3D;color:#fff;font-size:13px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:8px 14px;border-radius:100px">{{ t.promoBadge }}</span>
+            </div>
+            <div style="padding:18px 20px 26px;display:flex;flex-direction:column;gap:16px">
+              <div style="font-weight:800;font-size:25px;line-height:1.18">{{ t.promoTitle }}</div>
+              <div style="display:flex;align-items:baseline;gap:12px">
+                <span style="font-weight:800;font-size:32px;color:#0A4F4D">542 €</span>
+                <span style="font-size:18px;color:#9BB0AC;text-decoration:line-through;font-weight:700">610 €</span>
+              </div>
+              <div style="background:#fff;border:none;border-radius:24px;box-shadow:0 12px 30px -22px rgba(10,79,77,.5);overflow:hidden">
+                <div style="display:flex;align-items:center;gap:13px;padding:15px 16px;font-size:16.5px;font-weight:600"><i data-lucide="check" style="flex:none;display:inline-flex;width:20px;height:20px;color:#119A93;stroke-width:2.4"></i>{{ t.promoI1 }}</div>
+                <div style="display:flex;align-items:center;gap:13px;padding:15px 16px;border-top:1px solid #EFF4F3;font-size:16.5px;font-weight:600"><i data-lucide="check" style="flex:none;display:inline-flex;width:20px;height:20px;color:#119A93;stroke-width:2.4"></i>{{ t.promoI2 }}</div>
+                <div style="display:flex;align-items:center;gap:13px;padding:15px 16px;border-top:1px solid #EFF4F3;font-size:16.5px;font-weight:600"><i data-lucide="check" style="flex:none;display:inline-flex;width:20px;height:20px;color:#119A93;stroke-width:2.4"></i>{{ t.promoI3 }}</div>
+              </div>
+              <div style="display:flex;align-items:center;gap:12px;background:#FFF4EF;border:1px solid #FFD9CA;border-radius:16px;padding:14px 16px">
+                <i data-lucide="clock" style="flex:none;display:inline-flex;width:21px;height:21px;color:#D8451B;stroke-width:2"></i>
+                <div style="font-size:15.5px;font-weight:700;color:#8A3417;line-height:1.45">{{ t.promoLimit }}</div>
+              </div>
+            </div>
+          </div>
+          <div style="{{ ctaBar }}">
+            <button type="button" onClick="{{ goForm }}" style="{{ ctaPill }}">
+              <span style="flex:none;width:48px;height:48px;border-radius:50%;background:#FF6A3D;display:flex;align-items:center;justify-content:center"><i data-lucide="plus" style="flex:none;display:inline-flex;width:24px;height:24px;color:#fff;stroke-width:2"></i></span>
+              <span style="flex:1;text-align:left;min-width:0">
+                <span style="display:block;font-size:12.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#7DF4D2">542 € · 7 {{ t.days }}</span>
+                <span style="display:block;font-family:Manrope,sans-serif;font-weight:800;font-size:17.5px;color:#fff;margin-top:2px">{{ t.askOffer }}</span>
+              </span>
+              <span style="flex:none;width:42px;height:42px;border-radius:50%;background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center"><i data-lucide="chevrons-right" style="flex:none;display:inline-flex;width:21px;height:21px;color:#fff;stroke-width:2"></i></span>
+            </button>
+          </div>
+        </div>
+
+        <div style="{{ scrForm }}">
+          <div style="flex:1;overflow:auto;background:#F2F6F5">
+            <div style="padding:20px;background:#fff;display:flex;align-items:center;gap:12px">
+              <button type="button" onClick="{{ goPromo }}" style="flex:none;width:44px;height:44px;border-radius:14px;border:1px solid #D6E6E3;background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer"><i data-lucide="arrow-left" style="display:inline-flex;width:22px;height:22px;color:#0A4F4D;stroke-width:2.2"></i></button>
+              <div style="font-weight:800;font-size:21px;line-height:1.2">{{ t.formTitle }}</div>
+            </div>
+            <div style="padding:18px 20px 26px;display:flex;flex-direction:column;gap:18px">
+              <div>
+                <div style="font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#5A6B68;margin-bottom:9px">{{ t.formWho }}</div>
+                <div style="display:flex;gap:10px">
+                  <span style="flex:1;text-align:center;background:#0A4F4D;color:#fff;font-weight:800;font-size:17px;padding:16px 10px;border-radius:14px">2</span>
+                  <span style="flex:1;text-align:center;background:#fff;border:1px solid #D6E6E3;color:#0A4F4D;font-weight:800;font-size:17px;padding:16px 10px;border-radius:14px">1</span>
+                  <span style="flex:1;text-align:center;background:#fff;border:1px solid #D6E6E3;color:#0A4F4D;font-weight:800;font-size:17px;padding:16px 10px;border-radius:14px">3+</span>
+                </div>
+              </div>
+              <div>
+                <div style="font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#5A6B68;margin-bottom:9px">{{ t.formName }}</div>
+                <div style="background:#fff;border:1px solid #D6E6E3;border-radius:14px;padding:18px;font-size:17px;color:#9BB0AC;min-height:58px">{{ t.formNameEx }}</div>
+              </div>
+              <div>
+                <div style="font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#5A6B68;margin-bottom:9px">{{ t.formPhone }}</div>
+                <div style="background:#fff;border:1px solid #D6E6E3;border-radius:14px;padding:18px;font-size:17px;color:#16161A;min-height:58px;font-weight:600">+373 60 181 999</div>
+              </div>
+              <div style="font-size:14.5px;color:#5A6B68;line-height:1.55;font-weight:600">{{ t.formFine }}</div>
+            </div>
+          </div>
+          <div style="{{ ctaBar }}">
+            <button type="button" onClick="{{ goBookings }}" style="width:100%;min-height:58px;border:none;border-radius:16px;background:#FF6A3D;color:#fff;font-weight:800;font-size:18px;cursor:pointer">{{ t.formSend }}</button>
+            <button type="button" onClick="{{ goBookings }}" style="width:100%;min-height:52px;margin-top:9px;border:1px solid #CDE7E1;border-radius:14px;background:#fff;color:#0A4F4D;font-weight:800;font-size:16px;cursor:pointer">{{ t.formWa }}</button>
+          </div>
+        </div>
+
+        <div style="{{ scrBookings }}">
+          <div style="flex:1;overflow:auto;background:#F2F6F5">
+            <div style="padding:20px;background:#fff">
+              <div style="font-weight:800;font-size:27px;line-height:1.12;letter-spacing:-.025em">{{ t.bookTitle }}</div>
+            </div>
+            <div style="padding:16px 20px 26px;display:flex;flex-direction:column;gap:14px">
+              <div style="background:#fff;border:none;border-radius:26px;box-shadow:0 12px 30px -22px rgba(10,79,77,.5);padding:18px">
+                <div style="display:inline-flex;align-items:center;gap:8px;background:#E9FBF5;color:#0A4F4D;font-size:13px;font-weight:800;padding:7px 12px;border-radius:100px">{{ t.bookStatusNew }}</div>
+                <div style="font-weight:800;font-size:19px;line-height:1.25;margin-top:12px">Hotel Kumánia · 7 {{ t.days }}</div>
+                <div style="font-size:15.5px;color:#5A6B68;font-weight:600;margin-top:5px">{{ t.bookSent }} · 2 {{ t.persons }}</div>
+                <div style="display:flex;align-items:center;gap:10px;margin-top:14px;padding-top:14px;border-top:1px solid #E6EFEC">
+                  <i data-lucide="phone" style="flex:none;display:inline-flex;width:19px;height:19px;color:#119A93;stroke-width:2"></i>
+                  <div style="font-size:15.5px;font-weight:700;color:#3A4A47">{{ t.bookCall }}</div>
+                </div>
+              </div>
+              <div style="background:#fff;border:none;border-radius:26px;box-shadow:0 12px 30px -22px rgba(10,79,77,.5);padding:18px;opacity:.75">
+                <div style="display:inline-flex;align-items:center;gap:8px;background:#F1F5F4;color:#5A6B68;font-size:13px;font-weight:800;padding:7px 12px;border-radius:100px">{{ t.bookStatusDone }}</div>
+                <div style="font-weight:800;font-size:19px;line-height:1.25;margin-top:12px">Hajdúszoboszló · 10 {{ t.days }}</div>
+                <div style="font-size:15.5px;color:#5A6B68;font-weight:600;margin-top:5px">{{ t.bookPast }}</div>
+              </div>
+            </div>
+          </div>
+          <div style="{{ tabBar }}">
+            <button type="button" onClick="{{ goHome }}" style="{{ tabHome }}"><i data-lucide="house" style="flex:none;display:inline-flex;width:23px;height:23px;color:currentColor;stroke-width:2.1"></i><span style="{{ labHome }}">{{ t.tabHome }}</span></button>
+            <button type="button" onClick="{{ goList }}" style="{{ tabList }}"><i data-lucide="waves" style="flex:none;display:inline-flex;width:23px;height:23px;color:currentColor;stroke-width:2.1"></i><span style="{{ labList }}">{{ t.tabResorts }}</span></button>
+            <button type="button" onClick="{{ goNotif }}" style="{{ tabNotif }}"><i data-lucide="bell" style="flex:none;display:inline-flex;width:23px;height:23px;color:currentColor;stroke-width:2.1"></i><span style="{{ labNotif }}">{{ t.tabNotif }}</span></button>
+            <button type="button" onClick="{{ goProfile }}" style="{{ tabProfile }}"><i data-lucide="user-round" style="flex:none;display:inline-flex;width:23px;height:23px;color:currentColor;stroke-width:2.1"></i><span style="{{ labProfile }}">{{ t.tabProfile }}</span></button>
+          </div>
+        </div>
+
+        <div style="{{ scrProfile }}">
+          <div style="flex:1;overflow:auto;background:#F2F6F5">
+            <div style="padding:20px;background:#fff">
+              <div style="font-weight:800;font-size:27px;line-height:1.12;letter-spacing:-.025em">{{ t.profTitle }}</div>
+              <div style="display:flex;align-items:center;gap:13px;margin-top:16px">
+                <span style="flex:none;display:flex;width:56px;height:56px;border-radius:50%;background:linear-gradient(140deg,#E9FBF5,#C2EDE3);align-items:center;justify-content:center;font-weight:800;font-size:20px;color:#0A4F4D">IP</span>
+                <div>
+                  <div style="font-weight:800;font-size:19px">Ion Popescu</div>
+                  <div style="font-size:15px;color:#5A6B68;font-weight:600;margin-top:2px">+373 60 181 999</div>
+                </div>
+              </div>
+            </div>
+            <div style="padding:18px 20px 26px;display:flex;flex-direction:column;gap:16px">
+              <div style="font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#5A6B68">{{ t.profNotif }}</div>
+              <div style="background:#fff;border:none;border-radius:24px;box-shadow:0 12px 30px -22px rgba(10,79,77,.5);overflow:hidden">
+                <sc-for list="{{ toggles }}" as="s" hint-placeholder-count="4">
+                  <div style="{{ s.row }}">
+                    <span style="font-size:16.5px;font-weight:700;line-height:1.35;padding-right:12px">{{ s.label }}</span>
+                    <span style="{{ s.track }}"><span style="{{ s.knob }}"></span></span>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#5A6B68;margin-top:6px">{{ t.profLang }}</div>
+              <div style="display:flex;gap:10px">
+                <button type="button" onClick="{{ setRo }}" style="{{ langRo }}">Română</button>
+                <button type="button" onClick="{{ setRu }}" style="{{ langRu }}">Русский</button>
+              </div>
+            </div>
+          </div>
+          <div style="{{ tabBar }}">
+            <button type="button" onClick="{{ goHome }}" style="{{ tabHome }}"><i data-lucide="house" style="flex:none;display:inline-flex;width:23px;height:23px;color:currentColor;stroke-width:2.1"></i><span style="{{ labHome }}">{{ t.tabHome }}</span></button>
+            <button type="button" onClick="{{ goList }}" style="{{ tabList }}"><i data-lucide="waves" style="flex:none;display:inline-flex;width:23px;height:23px;color:currentColor;stroke-width:2.1"></i><span style="{{ labList }}">{{ t.tabResorts }}</span></button>
+            <button type="button" onClick="{{ goNotif }}" style="{{ tabNotif }}"><i data-lucide="bell" style="flex:none;display:inline-flex;width:23px;height:23px;color:currentColor;stroke-width:2.1"></i><span style="{{ labNotif }}">{{ t.tabNotif }}</span></button>
+            <button type="button" onClick="{{ goProfile }}" style="{{ tabProfile }}"><i data-lucide="user-round" style="flex:none;display:inline-flex;width:23px;height:23px;color:currentColor;stroke-width:2.1"></i><span style="{{ labProfile }}">{{ t.tabProfile }}</span></button>
+          </div>
+        </div>
+
+      </x-import>
+      </div>
+    </div>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1180,&quot;height&quot;:980}}">
+const STR = {
+  ro: {
+    onbBadge: 'Ungaria · băi termale', onbTitle: 'Promoțiile ajung direct la tine',
+    onbText: 'Activează notificările și afli primul despre reduceri și plecări noi.',
+    onbP1: 'Reduceri de sezon', onbP2: 'Plecări noi în calendar', onbP3: 'Ultimele locuri libere',
+    onbAllow: 'Permite notificările', onbLater: 'Mai târziu',
+    homeKicker: 'Fabrica Tur · Ungaria', homeTitle: 'Promoții și noutăți',
+    homeBadgePromo: 'Reducere 68 €', homeSeats: 'Au rămas 4 locuri', homeSeatsSub: 'Plecare 12 octombrie',
+    homeResorts: 'Stațiuni', seeAll: 'Vezi toate',
+    promoTitle: 'Kumánia, 7 zile cu transport și mic dejun',
+    promoSub: 'Hotel, băi termale și proceduri în același complex',
+    tag3in1: '3 în 1: hotel + băi + proceduri', tagMedical: 'Apă medicinală',
+    listTitle: 'Stațiuni în Ungaria', filterAll: 'Toate', filterSpine: 'Spate', filterJoints: 'Articulații',
+    hungary: 'Ungaria', water: 'Apa la sursă', fromPrice: 'Preț de la',
+    perPerson: 'pentru o persoană, 7 nopți',
+    resortF1: 'Acces direct din hotel la băi', resortF2: 'Bazine interioare și exterioare',
+    resortF3: 'Proceduri și fizioterapie', resortF4: 'Mic dejun și cină incluse',
+    askOffer: 'Vreau oferta',
+    notifTitle: 'Notificări', settings: 'Setări',
+    promoBadge: 'Ofertă limitată',
+    promoI1: 'Transport tur-retur din Chișinău', promoI2: 'Cazare 7 nopți la Hotel Kumánia',
+    promoI3: 'Acces la băile termale și wellness',
+    promoLimit: 'Oferta este valabilă până la 30 septembrie.',
+    formTitle: 'Cerere ofertă', formWho: 'Câte persoane', formName: 'Nume și prenume',
+    formNameEx: 'ex. Ion Popescu', formPhone: 'Telefon',
+    formFine: 'Trimiterea cererii este gratuită și nu te obligă să rezervi.',
+    formSend: 'Trimite cererea', formWa: 'Scrie-ne pe WhatsApp',
+    bookTitle: 'Rezervările mele', bookStatusNew: 'În lucru', bookStatusDone: 'Încheiată',
+    bookSent: 'Cerere trimisă ieri', bookCall: 'Consultantul te sună azi',
+    bookPast: 'Sejur din iunie 2026', days: 'zile', persons: 'persoane',
+    profTitle: 'Profil', profNotif: 'Notificări', profLang: 'Limba',
+    tabHome: 'Acasă', tabResorts: 'Stațiuni', tabNotif: 'Notificări', tabProfile: 'Profil',
+    hello: 'Bună ziua,', filterRecovery: 'Recuperare', nights: 'nopți', stay: 'Sejur',
+    tabDetails: 'Detalii', tabProc: 'Proceduri', tabReviews: 'Recenzii', gallery: 'Galerie'
+  },
+  ru: {
+    onbBadge: 'Венгрия · термальные курорты', onbTitle: 'Акции приходят прямо к вам',
+    onbText: 'Включите уведомления и узнавайте первыми о скидках и новых датах.',
+    onbP1: 'Сезонные скидки', onbP2: 'Новые даты выезда', onbP3: 'Последние свободные места',
+    onbAllow: 'Разрешить уведомления', onbLater: 'Позже',
+    homeKicker: 'Fabrica Tur · Венгрия', homeTitle: 'Акции и новости',
+    homeBadgePromo: 'Скидка 68 €', homeSeats: 'Осталось 4 места', homeSeatsSub: 'Выезд 12 октября',
+    homeResorts: 'Курорты', seeAll: 'Все курорты',
+    promoTitle: 'Кумания, 7 дней с транспортом и завтраком',
+    promoSub: 'Отель, термальные бани и процедуры в одном комплексе',
+    tag3in1: '3 в 1: отель + бани + процедуры', tagMedical: 'Лечебная вода',
+    listTitle: 'Курорты Венгрии', filterAll: 'Все', filterSpine: 'Спина', filterJoints: 'Суставы',
+    hungary: 'Венгрия', water: 'Вода у источника', fromPrice: 'Цена от',
+    perPerson: 'на человека, 7 ночей',
+    resortF1: 'Прямой переход из отеля в бани', resortF2: 'Внутренние и наружные бассейны',
+    resortF3: 'Процедуры и физиотерапия', resortF4: 'Завтрак и ужин включены',
+    askOffer: 'Хочу предложение',
+    notifTitle: 'Уведомления', settings: 'Настройки',
+    promoBadge: 'Ограниченное предложение',
+    promoI1: 'Транспорт туда-обратно из Кишинёва', promoI2: 'Проживание 7 ночей в Hotel Kumánia',
+    promoI3: 'Доступ к термальным баням и wellness',
+    promoLimit: 'Предложение действует до 30 сентября.',
+    formTitle: 'Запрос предложения', formWho: 'Сколько человек', formName: 'Имя и фамилия',
+    formNameEx: 'напр. Иван Попеску', formPhone: 'Телефон',
+    formFine: 'Запрос бесплатный и не обязывает вас бронировать.',
+    formSend: 'Отправить запрос', formWa: 'Написать в WhatsApp',
+    bookTitle: 'Мои заявки', bookStatusNew: 'В работе', bookStatusDone: 'Завершена',
+    bookSent: 'Заявка отправлена вчера', bookCall: 'Консультант позвонит сегодня',
+    bookPast: 'Поездка в июне 2026', days: 'дней', persons: 'человека',
+    profTitle: 'Профиль', profNotif: 'Уведомления', profLang: 'Язык',
+    tabHome: 'Главная', tabResorts: 'Курорты', tabNotif: 'Уведомления', tabProfile: 'Профиль',
+    hello: 'Здравствуйте,', filterRecovery: 'Реабилитация', nights: 'ночей', stay: 'Поездка',
+    tabDetails: 'Детали', tabProc: 'Процедуры', tabReviews: 'Отзывы', gallery: 'Галерея'
+  }
+};
+
+const SCREENS = [
+  ['Onboarding', 'onboarding'], ['Ecran principal', 'home'], ['Listă stațiuni', 'list'],
+  ['Pagină stațiune', 'resort'], ['Centru notificări', 'notif'], ['Detaliu promoție', 'promo'],
+  ['Cerere ofertă', 'form'], ['Rezervările mele', 'bookings'], ['Profil / setări', 'profile']
+];
+
+class Component extends DCLogic {
+  state = { platform: 'ios', lang: 'ro', screen: 'home', notifOn: [true, true, true, false] };
+
+  componentDidMount() { this.icons(); }
+  componentDidUpdate() { this.icons(); }
+  componentWillUnmount() { clearTimeout(this._t); }
+
+  icons() {
+    const run = () => {
+      if (window.lucide && window.lucide.createIcons) window.lucide.createIcons();
+      else this._t = setTimeout(run, 150);
+    };
+    run();
+  }
+
+  go(screen) { return () => this.setState({ screen }); }
+
+  renderVals() {
+    const { platform, lang, screen } = this.state;
+    const t = STR[lang];
+    const ios = platform === 'ios';
+
+    const seg = (on) => 'border:none;cursor:pointer;font-weight:800;font-size:14px;padding:9px 16px;border-radius:9px;' +
+      (on ? 'background:#0A4F4D;color:#fff' : 'background:transparent;color:#5A6B68');
+
+    const menuBtn = (on) => 'display:flex;align-items:center;gap:10px;text-align:left;cursor:pointer;white-space:nowrap;' +
+      'font-family:Manrope,sans-serif;font-weight:700;font-size:13.5px;padding:12px 13px;border-radius:12px;' +
+      (on ? 'background:#0A4F4D;color:#fff;border:1px solid #0A4F4D' : 'background:#fff;color:#16161A;border:1px solid #D6E6E3');
+
+    const scr = (name) => name === screen
+      ? 'height:100%;display:flex;flex-direction:column;background:#F2F6F5' + (ios ? ';padding-top:54px' : '')
+      : 'display:none';
+
+    const tab = (name) => {
+      const on = name === screen;
+      return 'flex:' + (on ? '1.5' : '1') + ';display:flex;flex-direction:row;align-items:center;justify-content:center;gap:7px;' +
+        'border:none;cursor:pointer;font-family:Manrope,sans-serif;font-weight:800;font-size:13px;min-height:54px;' +
+        'padding:0 10px;border-radius:19px;transition:background .2s;' +
+        (on ? 'background:#0A4F4D;color:#fff' : 'background:transparent;color:#7C918D');
+    };
+
+    const lab = (name) => name === screen ? 'white-space:nowrap' : 'display:none';
+
+    const langBtn = (on) => 'flex:1;cursor:pointer;font-family:Manrope,sans-serif;font-weight:800;font-size:16px;' +
+      'padding:16px 10px;border-radius:14px;' +
+      (on ? 'background:#0A4F4D;color:#fff;border:1px solid #0A4F4D' : 'background:#fff;color:#0A4F4D;border:1px solid #D6E6E3');
+
+    const notifLabels = lang === 'ro'
+      ? ['Promoții cu preț redus', 'Ultimele locuri la o plecare', 'Plecări noi în calendar', 'Noutăți despre stațiuni']
+      : ['Акции со скидкой', 'Последние места на выезд', 'Новые даты выезда', 'Новости курортов'];
+
+    const notifData = lang === 'ro' ? [
+      { icon: 'tag', title: 'Reducere 68 € la Kumánia', text: 'Plecare 12 octombrie, 7 zile cu transport.', when: 'acum 2 ore', accent: true },
+      { icon: 'clock', title: 'Au rămas 4 locuri', text: 'Hajdúszoboszló, plecare 19 octombrie.', when: 'ieri' },
+      { icon: 'calendar-days', title: 'Plecări noi în noiembrie', text: 'Sunt deschise înscrierile pentru 3 date noi.', when: 'acum 3 zile' },
+      { icon: 'newspaper', title: 'Bazin nou la Kumánia', text: 'Zona de wellness a fost extinsă.', when: 'acum 5 zile' },
+      { icon: 'phone', title: 'Cererea ta a fost primită', text: 'Consultantul te contactează azi.', when: 'acum o săptămână' }
+    ] : [
+      { icon: 'tag', title: 'Скидка 68 € в Кумании', text: 'Выезд 12 октября, 7 дней с транспортом.', when: '2 часа назад', accent: true },
+      { icon: 'clock', title: 'Осталось 4 места', text: 'Хайдусобосло, выезд 19 октября.', when: 'вчера' },
+      { icon: 'calendar-days', title: 'Новые выезды в ноябре', text: 'Открыта запись на 3 новые даты.', when: '3 дня назад' },
+      { icon: 'newspaper', title: 'Новый бассейн в Кумании', text: 'Зона wellness стала больше.', when: '5 дней назад' },
+      { icon: 'phone', title: 'Заявка получена', text: 'Консультант свяжется с вами сегодня.', when: 'неделю назад' }
+    ];
+
+    const resortData = lang === 'ro' ? [
+      { name: 'Hotel Kumánia', city: 'Kisújszállás', price: 'de la 542 €', img: 'https://static.tildacdn.com/tild6234-3034-4162-a665-353738336131/8b1715ab-4e4d-422d-8.png' },
+      { name: 'Hajdúszoboszló', city: 'Hungarospa', price: 'de la 575 €', img: 'https://static.tildacdn.com/tild6661-6137-4938-b333-623261306665/8a19c449-f9d1-4a18-9.png' },
+      { name: 'Mátyás Király', city: 'Hajdúszoboszló', price: 'de la 590 €', img: 'https://static.tildacdn.com/tild6661-6137-4938-b333-623261306665/8a19c449-f9d1-4a18-9.png' }
+    ] : [
+      { name: 'Hotel Kumánia', city: 'Кишуйсаллаш', price: 'от 542 €', img: 'https://static.tildacdn.com/tild6234-3034-4162-a665-353738336131/8b1715ab-4e4d-422d-8.png' },
+      { name: 'Хайдусобосло', city: 'Hungarospa', price: 'от 575 €', img: 'https://static.tildacdn.com/tild6661-6137-4938-b333-623261306665/8a19c449-f9d1-4a18-9.png' },
+      { name: 'Mátyás Király', city: 'Хайдусобосло', price: 'от 590 €', img: 'https://static.tildacdn.com/tild6661-6137-4938-b333-623261306665/8a19c449-f9d1-4a18-9.png' }
+    ];
+
+    return {
+      t,
+      frame: ios ? 'IOSDevice' : 'AndroidDevice',
+      setIos: () => this.setState({ platform: 'ios' }),
+      setAndroid: () => this.setState({ platform: 'android' }),
+      setRo: () => this.setState({ lang: 'ro' }),
+      setRu: () => this.setState({ lang: 'ru' }),
+      iosTabStyle: seg(ios),
+      androidTabStyle: seg(!ios),
+      roTabStyle: seg(lang === 'ro'),
+      ruTabStyle: seg(lang === 'ru'),
+      langRo: langBtn(lang === 'ro'),
+      langRu: langBtn(lang === 'ru'),
+
+      menu: SCREENS.map(([label, key], i) => ({
+        label, num: String(i + 1).padStart(2, '0'),
+        style: menuBtn(key === screen), go: this.go(key)
+      })),
+
+      goHome: this.go('home'), goList: this.go('list'), goResort: this.go('resort'),
+      goNotif: this.go('notif'), goPromo: this.go('promo'), goForm: this.go('form'),
+      goBookings: this.go('bookings'), goProfile: this.go('profile'),
+
+      scrOnboarding: scr('onboarding'), scrHome: scr('home'), scrList: scr('list'),
+      scrResort: scr('resort'), scrNotif: scr('notif'), scrPromo: scr('promo'),
+      scrForm: scr('form'), scrBookings: scr('bookings'), scrProfile: scr('profile'),
+
+      tabBar: 'flex:none;display:flex;gap:4px;background:#fff;border:none;border-radius:26px;' +
+        'box-shadow:0 20px 44px -22px rgba(10,79,77,.5);padding:5px;margin:0 14px ' + (ios ? '30px' : '14px'),
+      tabHome: tab('home'), tabList: tab('list'), tabNotif: tab('notif'), tabProfile: tab('profile'),
+      labHome: lab('home'), labList: lab('list'), labNotif: lab('notif'), labProfile: lab('profile'),
+      ctaBar: 'flex:none;padding:0 14px ' + (ios ? '30px' : '14px'),
+      ctaPill: 'width:100%;display:flex;align-items:center;gap:12px;padding:8px;border:none;cursor:pointer;' +
+        'border-radius:100px;background:linear-gradient(135deg,#0A4F4D,#12938C);box-shadow:0 20px 40px -20px rgba(10,79,77,.65)',
+
+      resorts: resortData.map((r) => Object.assign({}, r, {
+        photo: 'position:absolute;inset:0;display:block;background:#0B0B0D url(' + r.img + ') center/cover no-repeat'
+      })),
+
+      notifs: notifData.map((n) => ({
+        icon: n.icon, title: n.title, text: n.text, when: n.when,
+        bg: n.accent ? '#FFF4EF' : '#fff',
+        border: n.accent ? '#FFD9CA' : '#E6EFEC',
+        iconBg: n.accent ? '#FFE2D6' : 'linear-gradient(140deg,#E9FBF5,#C2EDE3)',
+        iconColor: n.accent ? '#D8451B' : '#0A4F4D'
+      })),
+
+      toggles: notifLabels.map((label, i) => {
+        const on = this.state.notifOn[i];
+        return {
+          label,
+          row: 'display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px;min-height:62px' +
+            (i ? ';border-top:1px solid #E6EFEC' : ''),
+          track: 'flex:none;position:relative;display:block;width:54px;height:32px;border-radius:100px;transition:background .2s;' +
+            'background:' + (on ? '#119A93' : '#D6E0DE'),
+          knob: 'position:absolute;top:3px;left:' + (on ? '25px' : '3px') +
+            ';width:26px;height:26px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.25);transition:left .2s'
+        };
+      })
+    };
+  }
+}
+</script>
+</body>
+</html>

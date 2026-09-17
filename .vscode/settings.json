@@ -1,0 +1,5 @@
+{
+  // Preview în ramă de telefon peste serverul Expo web (`npm run web`).
+  "mobile-preview.url": "http://localhost:8081",
+  "mobile-preview.device": "iPhone 15"
+}

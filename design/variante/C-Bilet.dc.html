@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<style>
+  body{margin:0;background:#F3EFE6}
+  *{box-sizing:border-box}
+  *::-webkit-scrollbar{width:0;height:0;display:none}
+  *{scrollbar-width:none}
+  a{color:#0A4F4D}a:hover{color:#C2410C}
+</style>
+</helmet>
+
+<div style="font-family:'Manrope',sans-serif;background:#F3EFE6;min-height:100vh;padding:34px 24px;display:flex;flex-direction:column;align-items:center;gap:22px">
+  <div style="text-align:center;max-width:560px">
+    <div style="font-size:11px;font-weight:800;letter-spacing:.2em;text-transform:uppercase;color:#C2410C">Varianta C</div>
+    <div style="font-size:30px;font-weight:800;line-height:1.14;letter-spacing:-.025em;margin-top:8px;color:#16161A">Bilet de plecare</div>
+    <p style="font-size:14.5px;line-height:1.6;color:#5A5A5C;margin:8px 0 0">Blocuri mari, cifre foarte lizibile și cardul de plecare desenat ca un bilet. Totul e evident de la un metru distanță.</p>
+  </div>
+
+  <div style="display:flex;flex-wrap:wrap;gap:26px;justify-content:center">
+
+    <div style="width:340px;height:700px;border-radius:40px;background:#FFFDF8;box-shadow:0 30px 60px -30px rgba(22,22,26,.45);overflow:hidden;display:flex;flex-direction:column">
+      <div style="display:flex;justify-content:space-between;padding:14px 26px 6px;font-size:13px;font-weight:700;color:#16161A"><span>9:41</span><span style="display:flex;gap:6px"><i data-lucide="signal" style="display:inline-flex;width:15px;height:15px"></i><i data-lucide="wifi" style="display:inline-flex;width:15px;height:15px"></i><i data-lucide="battery-full" style="display:inline-flex;width:18px;height:15px"></i></span></div>
+      <div style="flex:1;overflow:auto;padding:12px 18px 18px">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+          <div style="font-weight:800;font-size:25px;line-height:1.1;letter-spacing:-.025em;color:#16161A">Plecări<br />în octombrie</div>
+          <span style="position:relative;flex:none;width:48px;height:48px;border-radius:16px;background:#16161A;display:flex;align-items:center;justify-content:center"><i data-lucide="bell" style="display:inline-flex;width:21px;height:21px;color:#FFFDF8"></i><span style="position:absolute;top:-3px;right:-3px;min-width:22px;height:22px;border-radius:11px;background:#C2410C;color:#fff;font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center;padding:0 6px">3</span></span>
+        </div>
+
+        <div style="position:relative;background:#16161A;border-radius:24px;padding:18px;margin-top:18px;color:#FFFDF8;overflow:hidden">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+            <span style="background:#C2410C;font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:7px 12px;border-radius:8px">Reducere 68 €</span>
+            <span style="font-size:13px;font-weight:800;color:#A8A29A">12 OCT</span>
+          </div>
+          <div style="font-weight:800;font-size:21px;line-height:1.2;margin-top:14px">Kumánia · 7 zile</div>
+          <div style="font-size:14.5px;color:#BDB8AE;font-weight:600;margin-top:5px">Transport, cazare, mic dejun, băi termale</div>
+          <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-top:16px;padding-top:16px;border-top:1px dashed rgba(255,253,248,.28)">
+            <div><div style="font-size:11.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#A8A29A">Preț / persoană</div><div style="font-weight:800;font-size:32px;line-height:1;margin-top:5px">542 €</div></div>
+            <div style="flex:none;background:#FFFDF8;color:#16161A;font-weight:800;font-size:15px;padding:14px 18px;border-radius:14px">Detalii</div>
+          </div>
+          <span style="position:absolute;left:-9px;top:50%;width:18px;height:18px;border-radius:50%;background:#FFFDF8"></span>
+          <span style="position:absolute;right:-9px;top:50%;width:18px;height:18px;border-radius:50%;background:#FFFDF8"></span>
+        </div>
+
+        <div style="display:flex;align-items:center;gap:12px;background:#FDEBDF;border-radius:20px;padding:15px;margin-top:14px">
+          <span style="flex:none;width:44px;height:44px;border-radius:14px;background:#C2410C;display:flex;align-items:center;justify-content:center"><i data-lucide="clock" style="display:inline-flex;width:20px;height:20px;color:#fff"></i></span>
+          <div><div style="font-weight:800;font-size:16.5px;color:#7C2D12">Au rămas 4 locuri</div><div style="font-size:14px;color:#9A4B24;font-weight:600;margin-top:2px">Plecare 12 octombrie</div></div>
+        </div>
+
+        <div style="font-weight:800;font-size:19px;margin-top:20px;letter-spacing:-.02em">Stațiuni</div>
+        <div style="display:flex;flex-direction:column;gap:11px;margin-top:12px">
+          <div style="display:flex;gap:13px;align-items:center;background:#F6F2E9;border-radius:20px;padding:12px">
+            <img src="https://static.tildacdn.com/tild6234-3034-4162-a665-353738336131/8b1715ab-4e4d-422d-8.png" alt="" style="flex:none;width:72px;height:72px;object-fit:cover;border-radius:14px;display:block" />
+            <div style="flex:1;min-width:0"><div style="font-weight:800;font-size:17.5px;line-height:1.2">Hotel Kumánia</div><div style="font-size:14px;color:#6B6B6E;font-weight:600;margin-top:3px">Kisújszállás</div><div style="font-weight:800;font-size:16px;color:#C2410C;margin-top:6px">de la 542 €</div></div>
+          </div>
+          <div style="display:flex;gap:13px;align-items:center;background:#F6F2E9;border-radius:20px;padding:12px">
+            <img src="https://static.tildacdn.com/tild6661-6137-4938-b333-623261306665/8a19c449-f9d1-4a18-9.png" alt="" style="flex:none;width:72px;height:72px;object-fit:cover;border-radius:14px;display:block" />
+            <div style="flex:1;min-width:0"><div style="font-weight:800;font-size:17.5px;line-height:1.2">Hajdúszoboszló</div><div style="font-size:14px;color:#6B6B6E;font-weight:600;margin-top:3px">Hungarospa</div><div style="font-weight:800;font-size:16px;color:#C2410C;margin-top:6px">de la 575 €</div></div>
+          </div>
+        </div>
+      </div>
+      <div style="flex:none;display:flex;background:#16161A;padding:8px 8px 22px">
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 0;border-radius:16px;background:#FFFDF8;color:#16161A;font-size:11.5px;font-weight:800"><i data-lucide="house" style="display:inline-flex;width:21px;height:21px"></i>Acasă</div>
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 0;color:#8F8A82;font-size:11.5px;font-weight:800"><i data-lucide="waves" style="display:inline-flex;width:21px;height:21px"></i>Stațiuni</div>
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 0;color:#8F8A82;font-size:11.5px;font-weight:800"><i data-lucide="bell" style="display:inline-flex;width:21px;height:21px"></i>Notificări</div>
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 0;color:#8F8A82;font-size:11.5px;font-weight:800"><i data-lucide="user-round" style="display:inline-flex;width:21px;height:21px"></i>Profil</div>
+      </div>
+    </div>
+
+    <div style="width:340px;height:700px;border-radius:40px;background:#FFFDF8;box-shadow:0 30px 60px -30px rgba(22,22,26,.45);overflow:hidden;display:flex;flex-direction:column">
+      <div style="position:relative;height:232px;flex:none;margin:12px 12px 0;border-radius:26px;overflow:hidden;background:#000">
+        <img src="https://static.tildacdn.com/tild6661-6137-4938-b333-623261306665/8a19c449-f9d1-4a18-9.png" alt="" style="width:100%;height:100%;object-fit:cover;display:block" />
+        <div style="position:absolute;left:14px;top:14px;width:44px;height:44px;border-radius:14px;background:#FFFDF8;display:flex;align-items:center;justify-content:center"><i data-lucide="arrow-left" style="display:inline-flex;width:21px;height:21px;color:#16161A"></i></div>
+        <span style="position:absolute;right:14px;bottom:14px;background:#16161A;color:#FFFDF8;font-size:13.5px;font-weight:800;padding:9px 14px;border-radius:12px">8,9 / 10</span>
+      </div>
+      <div style="flex:1;overflow:auto;padding:16px 18px 0">
+        <div style="font-weight:800;font-size:26px;line-height:1.12;letter-spacing:-.025em">Hotel Kumánia</div>
+        <div style="display:flex;align-items:center;gap:6px;font-size:14.5px;font-weight:700;color:#6B6B6E;margin-top:6px"><i data-lucide="map-pin" style="display:inline-flex;width:16px;height:16px;color:#C2410C"></i>Kisújszállás, Ungaria</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px">
+          <div style="background:#F6F2E9;border-radius:18px;padding:14px"><div style="font-size:11.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#8A8A8E">Apa la sursă</div><div style="font-weight:800;font-size:21px;margin-top:6px">47–61 °C</div></div>
+          <div style="background:#F6F2E9;border-radius:18px;padding:14px"><div style="font-size:11.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#8A8A8E">Sejur</div><div style="font-weight:800;font-size:21px;margin-top:6px">7 nopți</div></div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:2px;margin-top:16px;background:#F6F2E9;border-radius:20px;padding:6px">
+          <div style="display:flex;gap:12px;align-items:center;padding:13px;font-size:16px;font-weight:700"><i data-lucide="door-open" style="flex:none;display:inline-flex;width:19px;height:19px;color:#C2410C"></i>Acces direct din hotel la băi</div>
+          <div style="display:flex;gap:12px;align-items:center;padding:13px;font-size:16px;font-weight:700;border-top:1px solid #EAE4D7"><i data-lucide="waves" style="flex:none;display:inline-flex;width:19px;height:19px;color:#C2410C"></i>Bazine interioare și exterioare</div>
+          <div style="display:flex;gap:12px;align-items:center;padding:13px;font-size:16px;font-weight:700;border-top:1px solid #EAE4D7"><i data-lucide="stethoscope" style="flex:none;display:inline-flex;width:19px;height:19px;color:#C2410C"></i>Proceduri și fizioterapie</div>
+        </div>
+      </div>
+      <div style="flex:none;padding:14px 18px 24px;display:flex;align-items:center;gap:14px;background:#FFFDF8">
+        <div style="min-width:0"><div style="font-size:11.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#8A8A8E">De la</div><div style="font-weight:800;font-size:26px;line-height:1;margin-top:3px">542 €</div></div>
+        <div style="flex:1;min-height:56px;border-radius:16px;background:#C2410C;color:#fff;font-weight:800;font-size:16.5px;display:flex;align-items:center;justify-content:center;gap:9px">Vreau oferta<i data-lucide="arrow-right" style="display:inline-flex;width:20px;height:20px"></i></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:800,&quot;height&quot;:840}}">
+class Component extends DCLogic {
+  componentDidMount() { this.icons(); }
+  componentDidUpdate() { this.icons(); }
+  componentWillUnmount() { clearTimeout(this._t); }
+  icons() {
+    const run = () => {
+      if (window.lucide && window.lucide.createIcons) window.lucide.createIcons();
+      else this._t = setTimeout(run, 150);
+    };
+    run();
+  }
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>
