@@ -2,14 +2,16 @@ export type Lang = 'ro' | 'ru';
 
 const ro = {
   signInTitle: 'Bun venit',
-  signInText: 'Completează datele tale ca să primești ofertele potrivite.',
   signInFirstName: 'Prenume',
   signInFirstNameEx: 'Ion',
   signInLastName: 'Nume',
   signInLastNameEx: 'Popescu',
   signInPhone: 'Număr de telefon',
   signInContinue: 'Continuă',
-  signInWhy: 'Fără parolă și fără email. Te contactăm doar cu oferte care te interesează.',
+  signInNeedFirst: 'Scrie prenumele',
+  signInNeedLast: 'Scrie numele de familie',
+  signInNeedPhone: 'Numărul are 8 cifre după +373',
+  signInTagline: 'Sejururi termale în Ungaria, cu plecare din Chișinău',
 
   hello: 'Bună ziua,',
   homeOffer: 'Oferta săptămânii',
@@ -85,14 +87,16 @@ const ro = {
 /** Traducerea rusă folosește exact aceleași chei ca varianta română. */
 const ru: Record<keyof typeof ro, string> = {
   signInTitle: 'Добро пожаловать',
-  signInText: 'Заполните свои данные, чтобы получать подходящие предложения.',
   signInFirstName: 'Имя',
   signInFirstNameEx: 'Иван',
   signInLastName: 'Фамилия',
   signInLastNameEx: 'Попеску',
   signInPhone: 'Номер телефона',
   signInContinue: 'Продолжить',
-  signInWhy: 'Без пароля и без электронной почты. Пишем только с интересными предложениями.',
+  signInNeedFirst: 'Введите имя',
+  signInNeedLast: 'Введите фамилию',
+  signInNeedPhone: 'После +373 должно быть 8 цифр',
+  signInTagline: 'Термальные курорты Венгрии, выезд из Кишинёва',
 
   hello: 'Здравствуйте,',
   homeOffer: 'Предложение недели',
