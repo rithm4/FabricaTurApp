@@ -1,19 +1,20 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import { ImageBackground, ScrollView, StyleSheet, View } from 'react-native';
+import { ImageBackground, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Text } from '../components/Text';
 import { BackButton } from '../components/BackButton';
 import { PillButton } from '../components/PillButton';
+import { Icon } from '../components/Icon';
 import { useApp } from '../AppState';
-import { colors, radius, space, type } from '../theme';
+import { colors, radius, space, TOUCH, type } from '../theme';
 
 /**
  * Pagina unui articol: text mare și aerisit, fără nimic care să distragă. Rândurile de listă
  * au un punct albastru; la final, dacă articolul ține de un hotel, butonul spre el.
  */
 export function ArticlePage() {
-  const { t, article, resorts, openResort } = useApp();
+  const { t, article, resorts, openResort, selectResort, setDeparture, go } = useApp();
   const insets = useSafeAreaInsets();
 
   if (!article) {
@@ -26,6 +27,14 @@ export function ArticlePage() {
   }
 
   const resort = resorts.find((r) => r.id === article.resortId);
+  // Cererea: pentru hotelul articolului, sau pentru oferta săptămânii dacă articolul e general.
+  const target = resort ?? resorts[0];
+  const book = () => {
+    if (!target) return;
+    selectResort(target.id);
+    setDeparture(null);
+    go('form');
+  };
   const minutes = t.articleMinutes.replace('{n}', String(article.minutes));
 
   return (
@@ -65,15 +74,20 @@ export function ArticlePage() {
           )}
         </View>
 
-        {resort ? (
-          <View style={styles.resortCard}>
-            <Text style={styles.resortName}>{resort.name}</Text>
-            <Text style={styles.resortMeta}>{`${resort.city} · ${resort.price}`}</Text>
-            <PillButton
-              label={t.articleResort}
-              onPress={() => openResort(resort.id)}
-              style={styles.resortButton}
-            />
+        {/* La final, pasul următor: o cerere de ofertă, fără să cauți unde se face. */}
+        {target ? (
+          <View style={styles.cta}>
+            <Text style={styles.ctaTitle}>{t.articleCtaTitle}</Text>
+            <Text style={styles.ctaText}>
+              {resort ? `${resort.name} · ${resort.city} · ${resort.price}` : t.articleCtaText}
+            </Text>
+            <PillButton label={t.articleCtaButton} onPress={book} style={styles.ctaButton} />
+            {resort ? (
+              <Pressable onPress={() => openResort(resort.id)} style={styles.ctaLink} accessibilityRole="button">
+                <Text style={styles.ctaLinkText}>{t.articleResort}</Text>
+                <Icon name="arrow-right" size={16} color={colors.link} />
+              </Pressable>
+            ) : null}
           </View>
         ) : null}
       </View>
@@ -105,15 +119,24 @@ const styles = StyleSheet.create({
   },
   liText: { flex: 1, fontSize: 18, lineHeight: 29, color: colors.body },
 
-  resortCard: {
+  cta: {
     marginTop: space.section,
     padding: space.xl,
     borderRadius: radius.xl,
     backgroundColor: colors.chipBlue,
   },
-  resortName: { ...type.title, color: colors.ink },
-  resortMeta: { ...type.small, color: colors.muted, marginTop: 2 },
-  resortButton: { alignSelf: 'flex-start', marginTop: space.lg },
+  ctaTitle: { ...type.title, color: colors.ink },
+  ctaText: { ...type.body, color: colors.body, marginTop: space.xs },
+  ctaButton: { alignSelf: 'flex-start', marginTop: space.lg },
+  ctaLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    alignSelf: 'flex-start',
+    minHeight: TOUCH,
+    marginTop: space.sm,
+  },
+  ctaLinkText: { ...type.smallStrong, color: colors.link },
 
   missing: { flex: 1, padding: space.lg, gap: space.xl },
   missingText: { ...type.body, color: colors.muted, textAlign: 'center' },

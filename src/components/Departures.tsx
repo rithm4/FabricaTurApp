@@ -71,7 +71,7 @@ function Row({
 const locale = (lang: Lang) => (lang === 'ro' ? 'ro-RO' : 'ru-RU');
 
 /** Ziua plecării desfăcută pentru fila de calendar: „OCT", „12", „sâmbătă", „19 octombrie". */
-function calendar(start: string, nights: number, lang: Lang) {
+export function calendar(start: string, nights: number, lang: Lang) {
   const from = new Date(`${start}T12:00:00`);
   const to = new Date(from);
   to.setDate(from.getDate() + nights);
