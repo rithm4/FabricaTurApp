@@ -1,12 +1,12 @@
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from "react-native";
 
-import { Text } from './Text';
-import { Press } from './Press';
-import { Icon } from './Icon';
-import { useApp } from '../AppState';
-import { nightsLabel, lastSeatsLabel } from '../i18n';
-import { LOW_SEATS, type Departure, type ResortId } from '../data';
-import { colors, radius, shadow, space, type } from '../theme';
+import { Text } from "./Text";
+import { Press } from "./Press";
+import { Icon } from "./Icon";
+import { useApp } from "../AppState";
+import { nightsLabel, lastSeatsLabel } from "../i18n";
+import { LOW_SEATS, type Departure, type ResortId } from "../data";
+import { colors, radius, shadow, space, type } from "../theme";
 
 /**
  * Un rând pe dată de plecare. Apăsarea alege data și duce direct la cerere,
@@ -29,7 +29,7 @@ function Row({
     // Se reține și hotelul: cererea trebuie să știe pentru care stațiune e data aleasă.
     selectResort(resortId);
     setDeparture(departure);
-    go('form');
+    go("form");
   };
 
   return (
@@ -61,7 +61,9 @@ function Row({
             </Text>
           </View>
         ) : (
-          <Text style={styles.seats}>{`${departure.seatsLeft} ${t.departuresSeats}`}</Text>
+          <Text
+            style={styles.seats}
+          >{`${departure.seatsLeft} ${t.departuresSeats}`}</Text>
         )}
       </View>
 
@@ -74,7 +76,13 @@ function Row({
  * O plecare ca un card mic, pentru Acasă: data mare, nopțile și locurile. Apăsat, duce
  * la cerere cu data deja aleasă — exact ca rândul din lista mare.
  */
-function Chip({ departure, resortId }: { departure: Departure; resortId: ResortId }) {
+function Chip({
+  departure,
+  resortId,
+}: {
+  departure: Departure;
+  resortId: ResortId;
+}) {
   const { t, lang, go, setDeparture, selectResort } = useApp();
   const full = departure.seatsLeft <= 0;
   const low = !full && departure.seatsLeft <= LOW_SEATS;
@@ -82,7 +90,7 @@ function Chip({ departure, resortId }: { departure: Departure; resortId: ResortI
   const choose = () => {
     selectResort(resortId);
     setDeparture(departure);
-    go('form');
+    go("form");
   };
 
   return (
@@ -90,7 +98,7 @@ function Chip({ departure, resortId }: { departure: Departure; resortId: ResortI
       onPress={choose}
       disabled={full}
       scaleTo={0.96}
-      style={[styles.chip, low && styles.chipLow, full && styles.chipFull]}
+      style={[styles.chip, full && styles.chipFull]}
       accessibilityRole="button"
       accessibilityState={{ disabled: full }}
       accessibilityLabel={
@@ -99,20 +107,29 @@ function Chip({ departure, resortId }: { departure: Departure; resortId: ResortI
           : `${departure.dates}, ${nightsLabel(departure.nights, lang)}, ${departure.seatsLeft} ${t.departuresSeats}`
       }
     >
-      <Text style={[styles.chipDates, full && styles.chipMuted]} numberOfLines={2}>
+      <Text
+        style={[styles.chipDates, full && styles.chipMuted]}
+        numberOfLines={2}
+      >
         {departure.dates}
       </Text>
-      <Text style={styles.nights}>{nightsLabel(departure.nights, lang)}</Text>
-      {full ? (
-        <Text style={styles.chipSeatsMuted}>{t.departuresFull}</Text>
-      ) : low ? (
-        <View style={styles.chipLowRow}>
-          <Icon name="clock" size={15} color={colors.magentaText} />
-          <Text style={styles.chipLowText}>{lastSeatsLabel(departure.seatsLeft, lang)}</Text>
-        </View>
-      ) : (
-        <Text style={styles.chipSeats}>{`${departure.seatsLeft} ${t.departuresSeats}`}</Text>
-      )}
+      <View style={styles.chipBottom}>
+        <Text style={styles.nights}>{nightsLabel(departure.nights, lang)}</Text>
+        {full ? (
+          <Text style={styles.chipSeatsMuted}>{t.departuresFull}</Text>
+        ) : low ? (
+          <View style={styles.chipLowRow}>
+            <Icon name="clock" size={15} color={colors.magentaText} />
+            <Text style={styles.chipLowText}>
+              {lastSeatsLabel(departure.seatsLeft, lang)}
+            </Text>
+          </View>
+        ) : (
+          <Text
+            style={styles.chipSeats}
+          >{`${departure.seatsLeft} ${t.departuresSeats}`}</Text>
+        )}
+      </View>
     </Press>
   );
 }
@@ -122,7 +139,13 @@ function Chip({ departure, resortId }: { departure: Departure; resortId: ResortI
  * `compact`: pe Acasă, carduri mici care se derulează în lateral — toate datele la vedere,
  * într-un singur rând, fără să împingă restul paginii în jos.
  */
-export function Departures({ resortId, compact }: { resortId: ResortId; compact?: boolean }) {
+export function Departures({
+  resortId,
+  compact,
+}: {
+  resortId: ResortId;
+  compact?: boolean;
+}) {
   const { t, departuresFor } = useApp();
   const list = departuresFor(resortId);
 
@@ -140,7 +163,11 @@ export function Departures({ resortId, compact }: { resortId: ResortId; compact?
             contentContainerStyle={styles.chipScroll}
           >
             {list.map((departure) => (
-              <Chip key={departure.id} departure={departure} resortId={resortId} />
+              <Chip
+                key={departure.id}
+                departure={departure}
+                resortId={resortId}
+              />
             ))}
           </ScrollView>
         )}
@@ -151,7 +178,9 @@ export function Departures({ resortId, compact }: { resortId: ResortId; compact?
   return (
     <View>
       <Text style={styles.title}>{t.departuresTitle}</Text>
-      {list.length === 0 ? <Text style={styles.none}>{t.departuresNone}</Text> : null}
+      {list.length === 0 ? (
+        <Text style={styles.none}>{t.departuresNone}</Text>
+      ) : null}
       <View style={[styles.card, list.length === 0 && styles.hidden]}>
         {list.map((departure, index) => (
           <Row
@@ -167,40 +196,59 @@ export function Departures({ resortId, compact }: { resortId: ResortId; compact?
 }
 
 const styles = StyleSheet.create({
-  title: { ...type.heading, color: colors.ink, marginTop: space.section, marginBottom: space.md },
+  title: {
+    ...type.heading,
+    color: colors.ink,
+    marginTop: space.section,
+    marginBottom: space.md,
+  },
   none: { ...type.body, color: colors.muted },
-  hidden: { display: 'none' },
+  hidden: { display: "none" },
 
   // Derularea ajunge la marginile ecranului; primul card stă aliniat cu textul.
   chipScrollBox: { marginHorizontal: -space.lg },
-  chipScroll: { gap: space.md, paddingHorizontal: space.lg, paddingBottom: space.md },
+  chipScroll: {
+    gap: space.md,
+    paddingHorizontal: space.lg,
+    paddingBottom: space.md,
+  },
+  // Înălțime fixă: cardurile stau aliniate, oricât de lungă e data.
   chip: {
     width: 168,
-    minHeight: 124,
+    height: 138,
     padding: space.lg,
     borderRadius: radius.xl,
     backgroundColor: colors.white,
     ...shadow.card,
   },
-  // Ultimele locuri: o dungă magenta sus, vizibilă din colțul ochiului.
-  chipLow: { borderTopWidth: 4, borderTopColor: colors.magenta, paddingTop: space.lg - 4 },
   chipFull: { backgroundColor: colors.surface },
+  // Împins jos: nopțile și locurile pe aceeași linie la toate cardurile.
+  chipBottom: { marginTop: "auto" },
   chipDates: { ...type.bodyStrong, color: colors.ink },
   chipMuted: { color: colors.muted },
-  chipSeats: { ...type.small, color: colors.muted, marginTop: space.sm },
-  chipSeatsMuted: { ...type.small, color: colors.muted, marginTop: space.sm },
-  chipLowRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: space.sm },
-  chipLowText: { ...type.smallStrong, color: colors.magentaText, flexShrink: 1 },
+  chipSeats: { ...type.small, color: colors.muted, marginTop: 2 },
+  chipSeatsMuted: { ...type.small, color: colors.muted, marginTop: 2 },
+  chipLowRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    marginTop: 2,
+  },
+  chipLowText: {
+    ...type.smallStrong,
+    color: colors.magentaText,
+    flexShrink: 1,
+  },
   card: {
     backgroundColor: colors.white,
     borderRadius: radius.xl,
-    overflow: 'hidden',
+    overflow: "hidden",
     ...shadow.card,
   },
   row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     gap: space.md,
     paddingHorizontal: space.lg,
     paddingVertical: space.lg,
@@ -214,10 +262,10 @@ const styles = StyleSheet.create({
   nights: { ...type.small, color: colors.muted },
   seats: { ...type.small, color: colors.muted, marginTop: space.xs },
   lowChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 6,
-    alignSelf: 'flex-start',
+    alignSelf: "flex-start",
     backgroundColor: colors.pinkSurface,
     paddingHorizontal: space.sm,
     paddingVertical: 5,
@@ -225,5 +273,4 @@ const styles = StyleSheet.create({
     marginTop: space.sm,
   },
   lowText: { ...type.micro, color: colors.magentaText },
-
 });
