@@ -148,8 +148,11 @@ export function Home() {
           </View>
         </Press>
 
+        {/* Plecările întâi: data e primul lucru pe care îl caută cine vrea să plece. */}
+        <Departures resortId={featured.id} compact />
+
         {/*
-          Sfaturile, imediat sub oferta săptămânii: aici le vede oricine deschide aplicația.
+          Sfaturile, imediat sub plecări: aici le vede oricine deschide aplicația.
           Cardurile se derulează în lateral, ca să nu împingă plecările mult în jos.
         */}
         {articles.length > 0 ? (
@@ -174,7 +177,6 @@ export function Home() {
           </>
         ) : null}
 
-        <Departures resortId={featured.id} compact />
 
         <View style={styles.sectionRow}>
           <Text style={styles.sectionTitle}>{t.homeResorts}</Text>
