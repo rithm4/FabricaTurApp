@@ -4,10 +4,11 @@ import { ImageBackground, Pressable, ScrollView, StyleSheet, View } from 'react-
 import { Text } from '../components/Text';
 import { DiscountBadge } from '../components/DiscountBadge';
 import { Price } from '../components/Price';
+import { PillButton } from '../components/PillButton';
 import { useApp } from '../AppState';
 import { content, type Resort } from '../data';
 import { Icon } from '../components/Icon';
-import { colors, radius, shadow, space, TOUCH, type } from '../theme';
+import { colors, radius, shadow, space, type } from '../theme';
 
 function ResortCard({ resort }: { resort: Resort }) {
   const { t, openResort } = useApp();
@@ -55,10 +56,8 @@ function ResortCard({ resort }: { resort: Resort }) {
             size={30}
             style={styles.priceBlock}
           />
-          <View style={styles.cta}>
-            <Text style={styles.ctaText}>{t.tabDetails}</Text>
-            <Icon name="arrow-right" size={19} color={colors.white} />
-          </View>
+          {/* Doar vizual: tot cardul e deja apăsabil. */}
+          <PillButton label={t.tabDetails} />
         </View>
       </View>
     </Pressable>
@@ -132,14 +131,4 @@ const styles = StyleSheet.create({
     borderTopColor: colors.line,
   },
   priceBlock: { flexShrink: 1 },
-  cta: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: space.sm,
-    minHeight: TOUCH,
-    paddingHorizontal: space.lg,
-    backgroundColor: colors.navy,
-    borderRadius: radius.md,
-  },
-  ctaText: { ...type.smallStrong, color: colors.white },
 });

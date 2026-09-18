@@ -6,6 +6,7 @@ import { Press } from '../components/Press';
 import { Departures } from '../components/Departures';
 import { DiscountBadge } from '../components/DiscountBadge';
 import { Price } from '../components/Price';
+import { PillButton } from '../components/PillButton';
 import { PhotoCarousel } from '../components/PhotoCarousel';
 import { useApp } from '../AppState';
 import { content, LOW_SEATS, profile, type Resort } from '../data';
@@ -121,21 +122,11 @@ export function Home() {
                 label={t.perPersonShort}
                 style={styles.priceBlock}
               />
-              <Pressable
+              <PillButton
+                label={t.seeOffer}
                 onPress={() => go('promo')}
-                accessibilityRole="button"
                 accessibilityLabel={`${t.seeOffer}, ${featured.name}, ${next.dates}, ${featured.price}`}
-              >
-                <LinearGradient
-                  colors={gradients.water}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                  style={styles.cta}
-                >
-                  <Text style={styles.ctaText}>{t.seeOffer}</Text>
-                  <Icon name="arrow-right" size={19} color={colors.white} />
-                </LinearGradient>
-              </Pressable>
+              />
             </View>
           </View>
         </Press>
@@ -254,16 +245,6 @@ const styles = StyleSheet.create({
     borderTopColor: colors.line,
   },
   priceBlock: { flexShrink: 1 },
-  cta: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: space.sm,
-    minHeight: TOUCH + 4,
-    paddingHorizontal: space.xl,
-    borderRadius: radius.pill,
-    ...shadow.card,
-  },
-  ctaText: { ...type.bodyStrong, color: colors.white },
 
   sectionRow: {
     flexDirection: 'row',

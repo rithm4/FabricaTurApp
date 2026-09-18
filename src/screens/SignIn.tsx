@@ -191,9 +191,19 @@ export function SignIn() {
             resizeMode="cover"
             accessibilityLabel="Bazinul termal interior de la Hotel Kumánia"
           />
+          {/*
+            Voalul se închide devreme, de la 65%, exact unde stau titlul și fraza.
+            Cu trei opriri, zona textului rămânea prea deschisă peste reflexele apei
+            și fraza cobora la 4,5:1; acum e peste 11:1 chiar pe punctul cel mai luminos.
+          */}
           <LinearGradient
-            colors={['rgba(9,20,52,0.45)', 'rgba(9,20,52,0)', 'rgba(9,20,52,0.85)']}
-            locations={[0, 0.35, 1]}
+            colors={[
+              'rgba(9,20,52,0.45)',
+              'rgba(9,20,52,0)',
+              'rgba(9,20,52,0.7)',
+              'rgba(9,20,52,0.92)',
+            ]}
+            locations={[0, 0.3, 0.65, 1]}
             style={styles.heroScrim}
           />
 
@@ -324,7 +334,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: space.md,
   },
   langOptionActive: { backgroundColor: colors.white },
-  langText: { ...type.smallStrong, color: colors.white },
+  langText: { ...type.smallStrong, fontWeight: '600', color: colors.white },
   langTextActive: { color: colors.navy },
 
   heroText: { paddingHorizontal: space.xl, marginBottom: OVERLAP + space.lg },
@@ -343,11 +353,12 @@ const styles = StyleSheet.create({
   },
   tagline: {
     ...type.body,
-    color: colors.onDarkMuted,
+    fontWeight: '500',
+    color: colors.white,
     marginTop: space.sm,
-    textShadowColor: 'rgba(9,20,52,0.5)',
+    textShadowColor: 'rgba(9,20,52,0.7)',
     textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 8,
+    textShadowRadius: 10,
   },
 
   card: {
@@ -362,6 +373,7 @@ const styles = StyleSheet.create({
   fields: { gap: space.md },
   label: {
     ...type.micro,
+    fontWeight: '500',
     color: colors.muted,
     letterSpacing: 1.1,
     textTransform: 'uppercase',
@@ -379,7 +391,7 @@ const styles = StyleSheet.create({
   },
   fieldFocused: { borderColor: colors.navy, backgroundColor: colors.white },
   fieldError: { borderColor: colors.magentaText, backgroundColor: colors.white },
-  prefix: { fontSize: 20, lineHeight: 26, fontWeight: '700', color: colors.ink },
+  prefix: { fontSize: 20, lineHeight: 26, fontWeight: '500', color: colors.ink },
   prefixDivider: {
     width: 1,
     height: 26,
@@ -390,12 +402,12 @@ const styles = StyleSheet.create({
     flex: 1,
     minWidth: 0,
     fontSize: 20,
-    fontWeight: '700',
+    fontWeight: '500',
     color: colors.ink,
     paddingVertical: space.md,
   },
   errorRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: space.sm },
-  errorText: { ...type.smallStrong, color: colors.magentaText },
+  errorText: { ...type.smallStrong, fontWeight: '600', color: colors.magentaText },
 
   buttonWrap: { marginTop: space.xxl, borderRadius: radius.pill, ...shadow.card },
   button: {
@@ -406,5 +418,5 @@ const styles = StyleSheet.create({
     minHeight: 60,
     borderRadius: radius.pill,
   },
-  buttonText: { ...type.bodyStrong, fontSize: 18, color: colors.white },
+  buttonText: { ...type.bodyStrong, fontSize: 18, fontWeight: '600', color: colors.white },
 });
