@@ -2175,3 +2175,123 @@ input[type='number']::-webkit-outer-spin-button {
 .grid-fields {
   align-items: end;
 }
+
+/* ── Listele cu bife: arată ca în aplicație ───────────────────────────────── */
+
+.bullets {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.bullet-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  min-height: 46px;
+  padding: 4px 4px 4px 10px;
+  border: 2px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--white);
+  transition: border-color 0.15s ease;
+}
+
+.bullet-row:hover {
+  border-color: var(--line-strong);
+}
+
+.bullet-row:focus-within {
+  border-color: var(--navy);
+}
+
+/* Bifa albastră rotundă, exact ca pe pagina ofertei din aplicație. */
+.bullet-check {
+  flex: none;
+  margin-top: 8px;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--navy);
+  color: var(--white);
+}
+
+.bullet-tag {
+  flex: none;
+  margin-top: 8px;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 8px;
+  background: var(--chip-blue);
+  color: var(--navy);
+}
+
+.bullet-input {
+  flex: 1;
+  min-width: 0;
+  padding: 8px 0;
+  field-sizing: content;
+  resize: none;
+  font: inherit;
+  line-height: 1.4;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+}
+
+.bullet-input:focus {
+  outline: none;
+}
+
+.bullet-input::placeholder {
+  color: #7a82a0;
+}
+
+.bullet-actions {
+  display: flex;
+  margin-top: 3px;
+  gap: 2px;
+  opacity: 0.55;
+  transition: opacity 0.15s ease;
+}
+
+.bullet-row:hover .bullet-actions,
+.bullet-row:focus-within .bullet-actions {
+  opacity: 1;
+}
+
+.bullet-btn {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.bullet-btn:hover {
+  background: var(--chip);
+  color: var(--navy);
+}
+
+.bullet-add {
+  align-self: flex-start;
+  margin-top: 2px;
+  padding-left: 8px;
+}
+
+/* Pe ecranele tactile, butoanele rândului sunt mereu vizibile. */
+@media (hover: none) {
+  .bullet-actions {
+    opacity: 1;
+  }
+}

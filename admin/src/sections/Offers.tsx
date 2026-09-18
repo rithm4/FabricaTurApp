@@ -1,5 +1,16 @@
 import { useRef, useState } from 'react';
-import { ImagePlus, Megaphone, Star, Thermometer, Trash2 } from 'lucide-react';
+import {
+  ArrowUp,
+  Check,
+  ImagePlus,
+  Megaphone,
+  Plus,
+  Star,
+  Tag,
+  Thermometer,
+  Trash2,
+  X,
+} from 'lucide-react';
 
 import { api } from '../api';
 import { discountOf, euro, todayIso } from '../format';
@@ -84,22 +95,46 @@ function TextPair({
   );
 }
 
-/** O listă în ambele limbi: câte un element pe rând. Rândurile goale se ignoră la salvare. */
+/**
+ * O listă în ambele limbi, arătată ca în aplicație: fiecare rând cu bifa lui.
+ * Rândurile goale se ignoră la salvare.
+ */
 function ListPair({
   id,
   label,
   hint,
   value,
   onChange,
+  look = 'check',
 }: {
   id: string;
   label: string;
   hint: string;
+  /** `check` = listă cu bife; `tag` = etichete scurte. */
+  look?: 'check' | 'tag';
   value: Record<Lang, string[]>;
   onChange: (value: Record<Lang, string[]>) => void;
 }) {
   const count = (lang: Lang) => value[lang].filter((s) => s.trim()).length;
   const mismatch = count('ro') !== count('ru');
+
+  const update = (lang: Lang, items: string[]) => onChange({ ...value, [lang]: items });
+  const setItem = (lang: Lang, index: number, text: string) =>
+    update(lang, value[lang].map((item, i) => (i === index ? text : item)));
+  const removeItem = (lang: Lang, index: number) =>
+    update(lang, value[lang].filter((_, i) => i !== index));
+  const moveUp = (lang: Lang, index: number) => {
+    const items = [...value[lang]];
+    [items[index - 1], items[index]] = [items[index], items[index - 1]];
+    update(lang, items);
+  };
+  const addItem = (lang: Lang) => {
+    update(lang, [...value[lang], '']);
+    // Cursorul trece direct în rândul nou, gata de scris.
+    requestAnimationFrame(() =>
+      document.getElementById(`${id}-${lang}-${value[lang].length}`)?.focus(),
+    );
+  };
 
   return (
     <div className="field">
@@ -107,16 +142,61 @@ function ListPair({
       <div className="pair">
         {LANGS.map((lang) => (
           <div key={lang} className="pair-col">
-            <label htmlFor={`${id}-${lang}`} className="pair-lang">
-              {lang.toUpperCase()} · {count(lang)}
-            </label>
-            <textarea
-              id={`${id}-${lang}`}
-              className="textarea"
-              rows={Math.max(3, value[lang].length + 1)}
-              value={value[lang].join('\n')}
-              onChange={(e) => onChange({ ...value, [lang]: e.target.value.split('\n') })}
-            />
+            <span className="pair-lang">
+              {lang === 'ro' ? 'Română' : 'Русский'} · {count(lang)}
+            </span>
+            {/* Fiecare rând arată ca în aplicație: o bifă (sau o etichetă) urmată de text. */}
+            <ol className="bullets">
+              {value[lang].map((item, index) => (
+                <li key={index} className="bullet-row">
+                  <span className={look === 'check' ? 'bullet-check' : 'bullet-tag'} aria-hidden>
+                    {look === 'check' ? <Check size={14} strokeWidth={3} /> : <Tag size={13} />}
+                  </span>
+                  {/* Rândul lung trece pe mai multe linii, ca în aplicație, nu se taie. */}
+                  <textarea
+                    rows={1}
+                    id={`${id}-${lang}-${index}`}
+                    className="bullet-input"
+                    value={item}
+                    placeholder="Scrie rândul…"
+                    aria-label={`${label}, ${lang.toUpperCase()}, rândul ${index + 1}`}
+                    onChange={(e) => setItem(lang, index, e.target.value)}
+                    onKeyDown={(e) => {
+                      // Enter adaugă rândul următor, ca într-o listă obișnuită.
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        addItem(lang);
+                      }
+                    }}
+                  />
+                  <span className="bullet-actions">
+                    {index > 0 ? (
+                      <button
+                        type="button"
+                        className="bullet-btn"
+                        onClick={() => moveUp(lang, index)}
+                        aria-label={`Mută rândul ${index + 1} mai sus`}
+                        title="Mută mai sus"
+                      >
+                        <ArrowUp size={15} />
+                      </button>
+                    ) : null}
+                    <button
+                      type="button"
+                      className="bullet-btn"
+                      onClick={() => removeItem(lang, index)}
+                      aria-label={`Șterge rândul ${index + 1}`}
+                      title="Șterge rândul"
+                    >
+                      <X size={15} />
+                    </button>
+                  </span>
+                </li>
+              ))}
+            </ol>
+            <button type="button" className="btn btn-sm btn-ghost bullet-add" onClick={() => addItem(lang)}>
+              <Plus size={15} /> Adaugă rând
+            </button>
           </div>
         ))}
       </div>
@@ -465,23 +545,24 @@ function ResortEditor({
           <ListPair
             id={`${resort.id}-includes`}
             label="Ce include oferta"
-            hint="Câte un rând pe linie. Apare pe pagina ofertei săptămânii."
+            hint="Apare pe pagina ofertei săptămânii (Acasă → „Vezi oferta”), sub preț, ca listă cu bife."
             value={draft.includes}
             onChange={(v) => set('includes', v)}
           />
           <ListPair
             id={`${resort.id}-features`}
             label="Avantajele hotelului"
-            hint="Câte un rând pe linie. Apare pe pagina hotelului."
+            hint="Apare pe pagina hotelului (Destinații → hotelul), sub plecări, ca listă cu bife."
             value={draft.features}
             onChange={(v) => set('features', v)}
           />
           <ListPair
             id={`${resort.id}-tags`}
             label="Etichete scurte"
-            hint="Câte una pe linie, 1–3 cuvinte. Apar în lista de destinații."
+            hint="1–3 cuvinte fiecare. Apar pe cardul hotelului în lista de destinații."
             value={draft.tags}
             onChange={(v) => set('tags', v)}
+            look="tag"
           />
         </>
       ) : null}
