@@ -1,16 +1,19 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
+  ArrowUp,
+  BatteryFull,
   Check,
   ImagePlus,
   Plus,
   RefreshCw,
+  Signal,
   Smartphone,
   Star,
   Tag,
   Thermometer,
   Trash2,
+  Wifi,
   X,
-  ArrowUp,
 } from 'lucide-react';
 
 import { api } from '../api';
@@ -71,10 +74,6 @@ const APP_URL = import.meta.env.DEV
   ? 'http://localhost:8081/'
   : new URL('../', window.location.href).toString();
 
-/**
- * Butonul „Vezi în aplicație": deschide aplicația adevărată într-un telefon desenat, direct
- * pe pagina ofertei sau a hotelului. Arată ce e salvat — de aceea cere salvarea întâi.
- */
 /** O amprentă scurtă a datelor, ca adresa să se schimbe când se schimbă ceva salvat. */
 function hash(text: string) {
   let h = 0;
@@ -82,6 +81,30 @@ function hash(text: string) {
   return (h >>> 0).toString(36);
 }
 
+/** Mărimea reală a telefonului desenat: ecran de 390 × 844, plus rama. */
+const DEVICE_W = 416;
+const DEVICE_H = 870;
+
+/**
+ * Cât se micșorează telefonul ca să încapă în fereastră. Aplicația dinăuntru se așază
+ * mereu la lățimea unui telefon adevărat; se micșorează doar imaginea, ca o fotografie.
+ */
+function useDeviceScale() {
+  const fit = () =>
+    Math.min(1, (window.innerHeight - 170) / DEVICE_H, (window.innerWidth - 48) / DEVICE_W);
+  const [scale, setScale] = useState(fit);
+  useEffect(() => {
+    const onResize = () => setScale(fit());
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
+  return Math.max(0.4, scale);
+}
+
+/**
+ * Butonul „Vezi în aplicație": deschide aplicația adevărată într-un telefon desenat, direct
+ * pe pagina ofertei sau a hotelului. Arată ce e salvat — de aceea cere salvarea întâi.
+ */
 export function PreviewButton({
   resort,
   screen,
@@ -96,6 +119,7 @@ export function PreviewButton({
   const [open, setOpen] = useState(false);
   const [lang, setLang] = useState<Lang>('ro');
   const [reload, setReload] = useState(0);
+  const scale = useDeviceScale();
 
   // Se reîncarcă singur după fiecare salvare: cheia se schimbă odată cu datele.
   const version = `${hash(JSON.stringify(resort))}-${reload}`;
@@ -144,8 +168,28 @@ export function PreviewButton({
               </p>
             ) : null}
 
-            <div className="device">
-              <iframe key={src} src={src} title={`${label} — ${resort.name}`} />
+            {/* Un telefon adevărat: proporțiile unui iPhone, ramă, butoane, bara de sus. */}
+            <div className="device-stage" style={{ width: DEVICE_W * scale, height: DEVICE_H * scale }}>
+            <div className="device" style={{ transform: `scale(${scale})` }}>
+              <span className="device-btn device-btn-power" aria-hidden />
+              <span className="device-btn device-btn-vol-up" aria-hidden />
+              <span className="device-btn device-btn-vol-down" aria-hidden />
+              <div className="device-screen">
+                <div className="device-status" aria-hidden>
+                  <span>
+                    {new Date().toLocaleTimeString('ro-RO', { hour: '2-digit', minute: '2-digit' })}
+                  </span>
+                  <span className="device-island" />
+                  <span className="device-icons">
+                    <Signal size={15} strokeWidth={2.6} />
+                    <Wifi size={15} strokeWidth={2.6} />
+                    <BatteryFull size={20} strokeWidth={2} />
+                  </span>
+                </div>
+                <iframe key={src} src={src} title={`${label} — ${resort.name}`} />
+                <span className="device-home" aria-hidden />
+              </div>
+            </div>
             </div>
           </div>
         </div>
