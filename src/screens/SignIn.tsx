@@ -87,7 +87,7 @@ function Field({
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
           placeholder={placeholder}
-          placeholderTextColor={colors.muted}
+          placeholderTextColor={colors.placeholder}
           autoComplete={autoComplete}
           autoCapitalize={isPhone ? 'none' : 'words'}
           keyboardType={isPhone ? 'phone-pad' : 'default'}
@@ -255,7 +255,7 @@ export function SignIn() {
               label={t.signInPhone}
               value={formatPhone(digits)}
               onChangeText={setPhone}
-              placeholder="69 123 456"
+              placeholder={t.signInPhoneEx}
               autoComplete="tel"
               error={tried && missing.phone ? t.signInNeedPhone : undefined}
               inputRef={phoneRef}

@@ -11,6 +11,7 @@ import { PhotoCarousel } from '../components/PhotoCarousel';
 import { useApp } from '../AppState';
 import { nightsLabel } from '../i18n';
 import { LOW_SEATS, type Resort } from '../data';
+import { initials } from './Profile';
 import { Icon } from '../components/Icon';
 import { colors, gradients, radius, shadow, space, TOUCH, type } from '../theme';
 
@@ -57,9 +58,14 @@ export function Home() {
 
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
-          <View style={styles.avatar}>
-            <Icon name="user" size={24} color={colors.navy} />
-          </View>
+          <Press
+            onPress={() => go('profile')}
+            style={styles.avatar}
+            accessibilityRole="button"
+            accessibilityLabel={t.tabProfile}
+          >
+            <Text style={styles.avatarText}>{initials(fullName) || '·'}</Text>
+          </Press>
           <View style={styles.greeting}>
             <Text style={styles.hello}>{t.hello}</Text>
             <Text style={styles.name}>{fullName}</Text>
@@ -105,7 +111,7 @@ export function Home() {
 
           <View style={styles.cardBody}>
             <Text style={styles.cardTitle}>{`${featured.name}, ${featured.city}`}</Text>
-            <Text style={styles.cardMeta}>{[nightsLabel(featured.nights, lang), featured.short].filter(Boolean).join(' · ')}</Text>
+            <Text style={styles.cardMeta}>{[nightsLabel(next?.nights ?? featured.nights, lang), featured.short].filter(Boolean).join(' · ')}</Text>
 
             {/* Fără nicio plecare programată, rândurile cu data și locurile nu au ce arăta. */}
             {next ? (
@@ -154,7 +160,9 @@ export function Home() {
         {resorts.length <= 2 ? (
           <View style={styles.tiles}>
             {resorts.map((resort) => (
-              <DestinationTile key={resort.id} resort={resort} />
+              <View key={resort.id} style={styles.tileCell}>
+                <DestinationTile resort={resort} />
+              </View>
             ))}
           </View>
         ) : (
@@ -183,6 +191,7 @@ const styles = StyleSheet.create({
   scroll: { paddingHorizontal: space.lg, paddingTop: space.sm, paddingBottom: space.section },
 
   header: { flexDirection: 'row', alignItems: 'center', gap: space.md },
+  avatarText: { ...type.smallStrong, color: colors.navy },
   avatar: {
     width: TOUCH,
     height: TOUCH,
@@ -262,6 +271,7 @@ const styles = StyleSheet.create({
 
   cardFooter: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: space.md,
@@ -270,7 +280,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: colors.line,
   },
-  priceBlock: { flexShrink: 1 },
+  priceBlock: { flexShrink: 0 },
 
   sectionRow: {
     flexDirection: 'row',
@@ -290,12 +300,14 @@ const styles = StyleSheet.create({
   link: { ...type.smallStrong, color: colors.link },
 
   tiles: { flexDirection: 'row', gap: space.md, marginTop: space.md },
+  // Coloană, nu rând: cardul se întinde pe toată lățimea celulei.
+  tileCell: { flex: 1 },
   // Derularea ajunge până la marginile ecranului, dar primul card stă aliniat cu textul.
   tilesScrollBox: { marginHorizontal: -space.lg, marginTop: space.md },
   tilesScroll: { gap: space.md, paddingHorizontal: space.lg },
-  tileFixed: { width: 160, flexDirection: 'row' },
+  tileFixed: { width: 160 },
+  // Fără flex: în învelișul lui (fără înălțime proprie), flex i-ar anula înălțimea de 170.
   tile: {
-    flex: 1,
     height: 170,
     borderRadius: radius.xl,
     overflow: 'hidden',

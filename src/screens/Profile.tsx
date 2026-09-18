@@ -4,11 +4,11 @@ import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { Text } from '../components/Text';
 import { Icon, type IconName } from '../components/Icon';
 import { useApp } from '../AppState';
-import type { Lang } from '../i18n';
+import { formatPhone, type Lang } from '../i18n';
 import { colors, gradients, radius, shadow, space, TOUCH, type } from '../theme';
 
 /** Inițialele din nume, pentru avatar: „Ion Popescu" → „IP". */
-function initials(name: string) {
+export function initials(name: string) {
   return name
     .split(/\s+/)
     .filter(Boolean)
@@ -105,7 +105,7 @@ export function Profile() {
         </LinearGradient>
         <View style={styles.identityText}>
           <Text style={styles.name}>{name}</Text>
-          <Text style={styles.phone}>{account.phone}</Text>
+          <Text style={styles.phone}>{formatPhone(account.phone)}</Text>
         </View>
       </View>
 

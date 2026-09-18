@@ -123,7 +123,7 @@ function localToday() {
 }
 
 /** „12 – 19 octombrie" sau „26 octombrie – 2 noiembrie"; în rusă, „12 – 19 октября". */
-function formatRange(start: string, nights: number, lang: Lang) {
+export function formatRange(start: string, nights: number, lang: Lang) {
   const from = new Date(`${start}T12:00:00`);
   const to = new Date(from);
   to.setDate(from.getDate() + nights);
@@ -242,6 +242,7 @@ export function buildDepartures(remote: Remote, lang: Lang, resortId: string): D
       }),
       nights: d.nights,
       seatsLeft: d.seats_left,
+      start: d.start_date,
     }));
 }
 

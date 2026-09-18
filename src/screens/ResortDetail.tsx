@@ -1,5 +1,5 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import { Image, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Image, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Text } from '../components/Text';
@@ -34,14 +34,17 @@ function Stat({
 function Feature({ icon, label, first }: { icon: IconName; label: string; first?: boolean }) {
   return (
     <View style={[styles.feature, !first && styles.featureDivider]}>
-      <Icon name={icon} size={22} color={colors.navy} />
+      {/* Aceeași bifă rotundă ca în „Ce include" de pe pagina ofertei. */}
+      <View style={styles.checkDot}>
+        <Icon name={icon} size={17} color={colors.white} />
+      </View>
       <Text style={styles.featureLabel}>{label}</Text>
     </View>
   );
 }
 
 export function ResortDetail() {
-  const { t, lang, go, resort } = useApp();
+  const { t, lang, resort } = useApp();
   const insets = useSafeAreaInsets();
 
   return (
@@ -105,9 +108,6 @@ export function ResortDetail() {
 
         <View style={styles.sectionRow}>
           <Text style={styles.sectionTitle}>{t.gallery}</Text>
-          <Pressable onPress={() => go('list')} style={styles.linkButton} accessibilityRole="button">
-            <Text style={styles.link}>{t.seeAll}</Text>
-          </Pressable>
         </View>
 
         <ScrollView
@@ -132,6 +132,14 @@ export function ResortDetail() {
 }
 
 const styles = StyleSheet.create({
+  checkDot: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: colors.navy,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   hero: { height: 320, backgroundColor: '#000' },
   heroCarousel: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0 },
   // Doar poziția pentru butonul Înapoi; aspectul îl dă BackButton.

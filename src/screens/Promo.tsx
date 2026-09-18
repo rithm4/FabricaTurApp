@@ -53,13 +53,13 @@ export function Promo() {
         <Text style={styles.title}>
           {t.promoTitle
             .replace('{name}', featured.name.replace(/^Hotel /, ''))
-            .replace('{nights}', nightsLabel(featured.nights, lang))}
+            .replace('{nights}', nightsLabel(next?.nights ?? featured.nights, lang))}
         </Text>
         {featured.short ? <Text style={styles.short}>{featured.short}</Text> : null}
 
         <View style={styles.priceCard}>
           <View style={styles.priceTop}>
-            <Text style={styles.priceMeta}>{`${featured.name} · ${nightsLabel(featured.nights, lang)}`}</Text>
+            <Text style={styles.priceMeta}>{`${featured.name} · ${nightsLabel(next?.nights ?? featured.nights, lang)}`}</Text>
             {next ? <Text style={styles.priceDate}>{next.dates}</Text> : null}
           </View>
           <Price

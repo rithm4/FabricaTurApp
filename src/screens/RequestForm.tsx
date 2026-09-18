@@ -14,7 +14,7 @@ import { Text } from '../components/Text';
 import { BackButton } from '../components/BackButton';
 import { CtaBar, CtaPill } from '../components/CtaPill';
 import { useApp, type OfferRequest } from '../AppState';
-import { nightsLabel } from '../i18n';
+import { nightsLabel, personsLabel } from '../i18n';
 import { isServerId, submitRequest } from '../remote';
 import { Icon } from '../components/Icon';
 import { colors, radius, space, TOUCH, type, webInputReset } from '../theme';
@@ -64,6 +64,8 @@ export function RequestForm() {
       id: String(Date.now()),
       resortName: resort.name,
       dates: departure?.dates ?? null,
+      start: departure?.start,
+      nights: departure?.nights,
       party,
       createdAt: Date.now(),
       // Starea spune cinstit ce s-a întâmplat: ajunsă la agenție, sau doar salvată pe telefon.
@@ -133,7 +135,7 @@ export function RequestForm() {
                     style={[styles.party, active && styles.partyActive]}
                     accessibilityRole="button"
                     accessibilityState={{ selected: active }}
-                    accessibilityLabel={`${size} ${t.persons}`}
+                    accessibilityLabel={personsLabel(size, lang)}
                   >
                     <Text style={[styles.partyText, active && styles.partyTextActive]}>{size}</Text>
                   </Pressable>
@@ -149,7 +151,7 @@ export function RequestForm() {
               value={name}
               onChangeText={setName}
               placeholder={t.formNameEx}
-              placeholderTextColor={colors.muted}
+              placeholderTextColor={colors.placeholder}
               onFocus={() => setFocused('name')}
               onBlur={() => setFocused(null)}
               style={[

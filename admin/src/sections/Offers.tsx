@@ -37,6 +37,8 @@ function OfferCard({
   const oldPriceLow = draft.oldPrice !== null && draft.oldPrice <= draft.price;
   const untilPast = draft.offerUntil !== null && draft.offerUntil < todayIso();
   const discount = discountOf(draft);
+  // Sub 3% nu arată a reducere, ci a greșeală (ex. 599 → 598 = „Reducere 1 €").
+  const tinyDiscount = discount > 0 && discount < draft.price * 0.03;
   const savedDiscount = discountOf(resort);
   const num = (value: string) => (value === '' ? 0 : Math.round(Number(value)));
 
@@ -124,10 +126,12 @@ function OfferCard({
       </div>
 
       {/* Reducerea se calculează din prețuri — nu se scrie de mână. */}
-      <p className={oldPriceLow ? 'field-note over' : 'field-note'}>
+      <p className={oldPriceLow || tinyDiscount ? 'field-note over' : 'field-note'}>
         {oldPriceLow
           ? 'Prețul vechi trebuie să fie mai mare decât cel nou. Altfel nu apare nicio reducere.'
-          : discount > 0
+          : tinyDiscount
+            ? `Reducerea e de doar ${euro(discount)} — pare o greșeală de tastare. Verifică prețul vechi.`
+            : discount > 0
             ? `Clientul vede reducerea de ${euro(discount)}, calculată din cele două prețuri.`
             : 'Completează prețul vechi doar când faci o reducere.'}
       </p>

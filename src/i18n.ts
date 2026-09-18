@@ -3,10 +3,11 @@ export type Lang = 'ro' | 'ru';
 const ro = {
   signInTitle: 'Bun venit',
   signInFirstName: 'Prenume',
-  signInFirstNameEx: 'Ion',
+  signInFirstNameEx: 'ex. Ion',
   signInLastName: 'Nume',
-  signInLastNameEx: 'Popescu',
+  signInLastNameEx: 'ex. Popescu',
   signInPhone: 'Număr de telefon',
+  signInPhoneEx: 'ex. 69 123 456',
   signInContinue: 'Continuă',
   signInNeedFirst: 'Scrie prenumele',
   signInNeedLast: 'Scrie numele de familie',
@@ -92,10 +93,11 @@ const ro = {
 const ru: Record<keyof typeof ro, string> = {
   signInTitle: 'Добро пожаловать',
   signInFirstName: 'Имя',
-  signInFirstNameEx: 'Иван',
+  signInFirstNameEx: 'напр. Иван',
   signInLastName: 'Фамилия',
-  signInLastNameEx: 'Попеску',
+  signInLastNameEx: 'напр. Попеску',
   signInPhone: 'Номер телефона',
+  signInPhoneEx: 'напр. 69 123 456',
   signInContinue: 'Продолжить',
   signInNeedFirst: 'Введите имя',
   signInNeedLast: 'Введите фамилию',
@@ -106,7 +108,7 @@ const ru: Record<keyof typeof ro, string> = {
   homeOffer: 'Предложение недели',
   homeResorts: 'Рекомендуемые направления',
   seeAll: 'Все курорты',
-  seeOffer: 'Смотреть предложение',
+  seeOffer: 'Подробнее',
   promoTitle: '{name}, {nights}',
   listTitle: 'Курорты Венгрии',
   hungary: 'Венгрия',
@@ -172,7 +174,7 @@ const ru: Record<keyof typeof ro, string> = {
   a11yUnread: 'непрочитанные новости',
   departuresNone: 'Пока нет запланированных выездов.',
   tabHome: 'Главная',
-  tabResorts: 'Направления',
+  tabResorts: 'Курорты',
   tabNotif: 'Новости',
   tabProfile: 'Профиль',
 };
@@ -183,6 +185,24 @@ export type Strings = typeof ro;
  * „7 nopți", „1 noapte"; în rusă cele trei forme: „1 ночь", „3 ночи", „7 ночей".
  * Numărul vine din panou, deci forma trebuie să se potrivească oricărei cifre.
  */
+/**
+ * Câte persoane, cu forma corectă: „1 persoană", „2 persoane", „3+ persoane";
+ * în rusă „1 человек", „2 человека", „3+ человек".
+ */
+export function personsLabel(party: string, lang: Lang) {
+  if (lang === 'ro') return party === '1' ? '1 persoană' : `${party} persoane`;
+  if (party === '1') return '1 человек';
+  if (party === '2') return '2 человека';
+  return `${party} человек`;
+}
+
+/** „69123456" → „+373 69 123 456": numărul, așa cum îl citește un om. */
+export function formatPhone(phone: string) {
+  const digits = phone.replace(/\D/g, '').replace(/^373/, '');
+  if (digits.length !== 8) return phone;
+  return `+373 ${digits.slice(0, 2)} ${digits.slice(2, 5)} ${digits.slice(5)}`;
+}
+
 export function nightsLabel(n: number, lang: Lang) {
   if (lang === 'ro') return n === 1 ? '1 noapte' : `${n} nopți`;
   const mod10 = n % 10;

@@ -6,6 +6,8 @@ import { Icon, type IconName } from '../components/Icon';
 import { BackButton } from '../components/BackButton';
 import { PillButton } from '../components/PillButton';
 import { useApp, type OfferRequest } from '../AppState';
+import { personsLabel } from '../i18n';
+import { formatRange } from '../remote';
 import { colors, radius, space, type } from '../theme';
 
 function RequestCard({ request }: { request: OfferRequest }) {
@@ -51,11 +53,13 @@ function RequestCard({ request }: { request: OfferRequest }) {
       <View style={styles.facts}>
         <View style={styles.fact}>
           <Icon name="calendar" size={18} color={colors.navy} />
-          <Text style={styles.factText}>{request.dates ?? t.waNoDate}</Text>
+          <Text style={styles.factText}>{request.start && request.nights
+              ? formatRange(request.start, request.nights, lang)
+              : (request.dates ?? t.waNoDate)}</Text>
         </View>
         <View style={styles.fact}>
           <Icon name="users" size={18} color={colors.navy} />
-          <Text style={styles.factText}>{`${request.party} ${t.persons}`}</Text>
+          <Text style={styles.factText}>{personsLabel(request.party, lang)}</Text>
         </View>
       </View>
     </View>

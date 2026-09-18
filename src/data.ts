@@ -160,6 +160,8 @@ export type Departure = {
   date: string;
   nights: number;
   seatsLeft: number;
+  /** Ziua plecării, AAAA-LL-ZZ — ca intervalul să poată fi rescris în altă limbă. */
+  start?: string;
 };
 
 /** Sub acest prag, numărul de locuri devine un semnal, nu o informație. */

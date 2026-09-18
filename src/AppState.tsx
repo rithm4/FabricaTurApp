@@ -43,6 +43,9 @@ export type OfferRequest = {
   resortName: string;
   /** Intervalul plecării alese; lipsește dacă omul n-a ales o dată anume. */
   dates: string | null;
+  /** Ziua și nopțile plecării, ca intervalul să apară în limba aleasă acum, nu în cea de atunci. */
+  start?: string;
+  nights?: number;
   party: string;
   createdAt: number;
   /** Pe unde a plecat: la agenție prin server, pe WhatsApp, sau doar salvată pe telefon. */

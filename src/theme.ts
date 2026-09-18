@@ -25,6 +25,7 @@ export const colors = {
   muted: '#454E71', //       7.6:1  text secundar (podeaua AAA)
   link: '#125488', //        7.9:1 pe alb, 7.1:1 pe pânză — AAA pe ambele
   magentaText: '#AC006D', // 7.1:1  magenta suficient de închis pentru text
+  placeholder: '#6B7390', // 4.6:1  exemplele din câmpuri — vizibil mai deschise decât textul scris
 
   // — Suprafețe —
   white: '#FFFFFF',
