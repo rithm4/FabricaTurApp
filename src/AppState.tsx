@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
-import { BackHandler } from 'react-native';
+import { AppState as SystemAppState, BackHandler } from 'react-native';
 
 import { AUDIENCES, type Departure, type NotificationItem, type Resort, type ResortId } from './data';
 import {
@@ -11,6 +11,7 @@ import {
   fetchRemote,
   fetchRequestStatuses,
   onRemoteChange,
+  onRequestStatus,
   type Remote,
   type RequestStatus,
 } from './remote';
@@ -233,6 +234,24 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (restored) refreshStatuses();
   }, [restored, idsKey]);
+
+  // Pe loc: panoul schimbă starea → serverul semnalează pe canalul cererii → aplicația o arată.
+  useEffect(() => {
+    if (!restored || !idsKey) return;
+    return onRequestStatus(idsKey.split(','), (id, status) =>
+      setRequests((current) =>
+        current.map((r) => (r.serverId === id && r.status !== status ? { ...r, status } : r)),
+      ),
+    );
+  }, [restored, idsKey]);
+
+  // Revenit în aplicație după o vreme: semnalele pierdute cât a fost închisă se recuperează.
+  useEffect(() => {
+    const sub = SystemAppState.addEventListener('change', (next) => {
+      if (next === 'active') refreshStatuses();
+    });
+    return () => sub.remove();
+  });
 
   // Hotelurile cu prețurile de pe server, în limba aleasă; data.ts când serverul lipsește.
   const resorts = useMemo(() => buildResorts(remote, lang, strings[lang]), [remote, lang]);

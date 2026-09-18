@@ -184,8 +184,7 @@ export type RequestStatus = 'new' | 'called' | 'booked' | 'cancelled';
 
 /**
  * Trimite cererea și întoarce numărul ei de pe server — cu el, și doar cu el, aplicația
- * își poate afla mai târziu starea. `''` când a primit-o fără număr (funcția lipsește pe
- * server), `null` când n-a primit-o deloc.
+ * își poate afla mai târziu starea. `null` când serverul n-a primit-o.
  */
 export async function submitRequest(input: {
   name: string;
@@ -203,19 +202,31 @@ export async function submitRequest(input: {
     p_party: input.party,
     p_lang: input.lang,
   });
-  if (!error && typeof data === 'string') return data;
+  // Cererile intră doar prin această funcție (vezi 005-doar-prin-functie.sql).
+  return !error && typeof data === 'string' ? data : null;
+}
 
-  // Rezervă: dacă funcția nu există încă pe server, cererea tot ajunge la agenție,
-  // doar că fără număr, deci fără stare urmărită.
-  const fallback = await supabase.from('requests').insert({
-    name: input.name,
-    phone: input.phone,
-    resort_id: input.resortId,
-    departure_id: input.departureId,
-    party: input.party,
-    lang: input.lang,
-  });
-  return fallback.error ? null : '';
+/**
+ * Ascultă schimbările de stare ale cererilor proprii, pe loc. Serverul trimite semnalul pe
+ * canalul „cerere:<număr>" (vezi 006-stare-in-timp-real.sql) — doar starea, nimic altceva.
+ * Întoarce funcția care oprește ascultarea.
+ */
+export function onRequestStatus(
+  ids: string[],
+  callback: (id: string, status: RequestStatus) => void,
+) {
+  const channels = ids.map((id) =>
+    supabase
+      .channel(`cerere:${id}`)
+      .on('broadcast', { event: 'status' }, ({ payload }) => {
+        const status = (payload as { status?: RequestStatus })?.status;
+        if (status) callback(id, status);
+      })
+      .subscribe(),
+  );
+  return () => {
+    channels.forEach((channel) => supabase.removeChannel(channel));
+  };
 }
 
 /** Starea cererilor proprii, după numerele lor. Serverul nu întoarce nimic altceva. */
