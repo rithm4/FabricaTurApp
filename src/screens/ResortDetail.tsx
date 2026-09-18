@@ -3,6 +3,7 @@ import { Image, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Text } from '../components/Text';
+import { BackButton } from '../components/BackButton';
 import { Departures } from '../components/Departures';
 import { PhotoCarousel } from '../components/PhotoCarousel';
 import { useApp } from '../AppState';
@@ -56,14 +57,10 @@ export function ResortDetail() {
           locations={[0, 0.34, 1]}
           style={StyleSheet.absoluteFill}
         />
-        <Pressable
-          onPress={() => go('list')}
-          style={[styles.circleButton, { left: space.lg, top: insets.top + space.lg }]}
-          accessibilityRole="button"
-          accessibilityLabel="Înapoi"
-        >
-          <Icon name="arrow-left" size={24} color={colors.white} />
-        </Pressable>
+        <BackButton
+          onDark
+          style={[styles.floating, { left: space.lg, top: insets.top + space.lg }]}
+        />
         <Pressable
           style={[styles.circleButton, { right: space.lg, top: insets.top + space.lg }]}
           accessibilityRole="button"
@@ -136,6 +133,8 @@ export function ResortDetail() {
 const styles = StyleSheet.create({
   hero: { height: 320, backgroundColor: '#000' },
   heroCarousel: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0 },
+  // Doar poziția pentru butonul Înapoi; aspectul îl dă BackButton.
+  floating: { position: 'absolute' },
   circleButton: {
     position: 'absolute',
     width: TOUCH,

@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 
 import { Text } from '../components/Text';
+import { BackButton } from '../components/BackButton';
 import { useApp } from '../AppState';
 import { profile } from '../data';
 import { Icon } from '../components/Icon';
@@ -18,7 +19,7 @@ import { colors, radius, space, TOUCH, type, webInputReset } from '../theme';
 const PARTY_SIZES = ['1', '2', '3+'];
 
 export function RequestForm() {
-  const { t, go, account, fullName, departure } = useApp();
+  const { t, back, account, fullName, departure } = useApp();
   const [party, setParty] = useState('2');
   // Precompletat din cont: aceleași date nu se cer de două ori.
   const [name, setName] = useState(fullName);
@@ -33,14 +34,7 @@ export function RequestForm() {
     >
       <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
         <View style={styles.header}>
-          <Pressable
-            onPress={() => go('promo')}
-            style={styles.back}
-            accessibilityRole="button"
-            accessibilityLabel="Înapoi"
-          >
-            <Icon name="arrow-left" size={24} color={colors.navy} />
-          </Pressable>
+          <BackButton />
           <Text style={styles.title}>{t.formTitle}</Text>
         </View>
 
@@ -55,8 +49,9 @@ export function RequestForm() {
                 <Text style={styles.chosenDate}>{departure.dates}</Text>
                 <Text style={styles.chosenMeta}>{`${departure.nights} ${t.nights}`}</Text>
               </View>
+              {/* Înapoi la lista de unde a fost aleasă data — pe Acasă sau pe pagina stațiunii. */}
               <Pressable
-                onPress={() => go('resort')}
+                onPress={back}
                 style={styles.chosenChange}
                 accessibilityRole="button"
               >
@@ -135,14 +130,6 @@ const styles = StyleSheet.create({
   scroll: { paddingHorizontal: space.lg, paddingTop: space.md, paddingBottom: space.section },
 
   header: { flexDirection: 'row', alignItems: 'center', gap: space.md },
-  back: {
-    width: TOUCH,
-    height: TOUCH,
-    borderRadius: TOUCH / 2,
-    backgroundColor: colors.surface,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   title: { ...type.title, color: colors.ink, flex: 1 },
 
   fields: { gap: space.xxl, marginTop: space.xxl },

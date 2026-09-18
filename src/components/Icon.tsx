@@ -24,6 +24,9 @@ const feather = {
   send: 'send',
   phone: 'phone',
   news: 'file-text',
+  'chevron-right': 'chevron-right',
+  globe: 'globe',
+  'log-out': 'log-out',
 } as const;
 
 const community = {

@@ -1,98 +1,141 @@
+import { LinearGradient } from 'expo-linear-gradient';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+
 import { Text } from '../components/Text';
-
+import { Icon, type IconName } from '../components/Icon';
 import { useApp } from '../AppState';
-import { content, profile } from '../data';
-import { Icon } from '../components/Icon';
-import { colors, radius, space, type } from '../theme';
+import { profile } from '../data';
 import type { Lang } from '../i18n';
+import { colors, gradients, radius, shadow, space, TOUCH, type } from '../theme';
 
-/**
- * Rând de comutator. Apăsabil pe toată lățimea, nu doar pe comutator — pentru cineva
- * cu mâna mai puțin sigură, o țintă de 68px e diferența dintre a reuși și a rata.
- */
-function ToggleRow({
+/** Inițialele din nume, pentru avatar: „Ion Popescu" → „IP". */
+function initials(name: string) {
+  return name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]!.toUpperCase())
+    .join('');
+}
+
+/** Un rând din meniul profilului: iconiță, titlu, rezumat opțional și săgeată. */
+function MenuRow({
+  icon,
   label,
-  on,
+  detail,
   onPress,
   first,
 }: {
+  icon: IconName;
   label: string;
-  on: boolean;
+  detail?: string;
   onPress: () => void;
   first?: boolean;
 }) {
   return (
     <Pressable
       onPress={onPress}
-      accessibilityRole="switch"
-      accessibilityState={{ checked: on }}
-      accessibilityLabel={label}
-      style={[styles.row, !first && styles.rowDivider]}
+      accessibilityRole="button"
+      accessibilityLabel={detail ? `${label}, ${detail}` : label}
+      style={({ pressed }) => [styles.row, !first && styles.rowDivider, pressed && styles.pressed]}
     >
-      <Text style={styles.rowLabel}>{label}</Text>
-      <View style={[styles.track, on && styles.trackOn]}>
-        <View style={[styles.knob, on && styles.knobOn]} />
+      <View style={styles.rowIcon}>
+        <Icon name={icon} size={20} color={colors.navy} />
       </View>
+      <View style={styles.rowBody}>
+        <Text style={styles.rowLabel}>{label}</Text>
+        {detail ? <Text style={styles.rowDetail}>{detail}</Text> : null}
+      </View>
+      <Icon name="chevron-right" size={22} color={colors.muted} />
     </Pressable>
   );
 }
 
-function LangButton({ lang, label }: { lang: Lang; label: string }) {
-  const { lang: current, setLang } = useApp();
-  const active = current === lang;
+/** Comutatorul de limbă, compact, pus direct în rând: nu merită un ecran separat. */
+function LangSwitch() {
+  const { lang, setLang } = useApp();
+  const options: { value: Lang; label: string }[] = [
+    { value: 'ro', label: 'RO' },
+    { value: 'ru', label: 'RU' },
+  ];
 
   return (
-    <Pressable
-      onPress={() => setLang(lang)}
-      style={[styles.langButton, active && styles.langButtonActive]}
-      accessibilityRole="button"
-      accessibilityState={{ selected: active }}
-    >
-      {active && <Icon name="check" size={19} color={colors.white} />}
-      <Text style={[styles.langText, active && styles.langTextActive]}>{label}</Text>
-    </Pressable>
+    <View style={styles.lang}>
+      {options.map((option) => {
+        const active = option.value === lang;
+        return (
+          <Pressable
+            key={option.value}
+            onPress={() => setLang(option.value)}
+            style={[styles.langOption, active && styles.langOptionActive]}
+            accessibilityRole="button"
+            accessibilityState={{ selected: active }}
+            accessibilityLabel={option.value === 'ro' ? 'Română' : 'Русский'}
+          >
+            <Text style={[styles.langText, active && styles.langTextActive]}>{option.label}</Text>
+          </Pressable>
+        );
+      })}
+    </View>
   );
 }
 
 export function Profile() {
-  const { t, lang, notifOn, toggleNotif, account, fullName, signOut } = useApp();
+  const { t, go, notifOn, account, fullName, signOut } = useApp();
+
+  const name = fullName || profile.name;
+  const on = notifOn.filter(Boolean).length;
+  // Rezumatul spune ce primești, nu îndeamnă la oprit.
+  const notifDetail =
+    on === 0
+      ? t.notifAllOff
+      : t.notifSummary.replace('{on}', String(on)).replace('{all}', String(notifOn.length));
 
   return (
     <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
       <Text style={styles.pageTitle}>{t.profTitle}</Text>
 
       <View style={styles.identity}>
-        <View style={styles.avatar}>
-          <Icon name="user" size={30} color={colors.muted} />
-        </View>
+        <LinearGradient
+          colors={gradients.water}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.avatar}
+        >
+          <Text style={styles.avatarText}>{initials(name)}</Text>
+        </LinearGradient>
         <View style={styles.identityText}>
-          <Text style={styles.name}>{fullName || profile.name}</Text>
+          <Text style={styles.name}>{name}</Text>
           <Text style={styles.phone}>{account.phone || profile.phone}</Text>
         </View>
       </View>
 
-      <Text style={styles.sectionLabel}>{t.profNotif}</Text>
       <View style={styles.card}>
-        {content.notificationSettings[lang].map((label, index) => (
-          <ToggleRow
-            key={label}
-            label={label}
-            on={notifOn[index]}
-            onPress={() => toggleNotif(index)}
-            first={index === 0}
-          />
-        ))}
+        <MenuRow icon="calendar" label={t.bookTitle} onPress={() => go('bookings')} first />
+        <MenuRow
+          icon="bell"
+          label={t.profNotif}
+          detail={notifDetail}
+          onPress={() => go('notifSettings')}
+        />
+        <View style={[styles.row, styles.rowDivider]}>
+          <View style={styles.rowIcon}>
+            <Icon name="globe" size={20} color={colors.navy} />
+          </View>
+          <View style={styles.rowBody}>
+            <Text style={styles.rowLabel}>{t.profLang}</Text>
+          </View>
+          <LangSwitch />
+        </View>
       </View>
 
-      <Text style={styles.sectionLabel}>{t.profLang}</Text>
-      <View style={styles.langRow}>
-        <LangButton lang="ro" label="Română" />
-        <LangButton lang="ru" label="Русский" />
-      </View>
-
-      <Pressable onPress={signOut} style={styles.signOut} accessibilityRole="button">
-        <Icon name="arrow-left" size={20} color={colors.magentaText} />
+      {/* Discret, ca orice acțiune care șterge ceva: nu trebuie să arate la fel de invitant. */}
+      <Pressable
+        onPress={signOut}
+        style={({ pressed }) => [styles.signOut, pressed && styles.pressed]}
+        accessibilityRole="button"
+      >
+        <Icon name="log-out" size={18} color={colors.magentaText} />
         <Text style={styles.signOutText}>{t.profSignOut}</Text>
       </Pressable>
     </ScrollView>
@@ -101,92 +144,81 @@ export function Profile() {
 
 const styles = StyleSheet.create({
   scroll: { paddingHorizontal: space.lg, paddingTop: space.md, paddingBottom: space.section },
-  pageTitle: { ...type.display, color: colors.ink, letterSpacing: -0.6 },
+  pageTitle: { ...type.display, fontWeight: '600', color: colors.ink, letterSpacing: -0.4 },
 
-  identity: { flexDirection: 'row', alignItems: 'center', gap: space.md, marginTop: space.xl },
+  identity: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space.lg,
+    marginTop: space.xl,
+    marginBottom: space.xxl,
+  },
   avatar: {
-    width: 62,
-    height: 62,
-    borderRadius: 31,
-    backgroundColor: colors.chipBlue,
+    width: 64,
+    height: 64,
+    borderRadius: 32,
     alignItems: 'center',
     justifyContent: 'center',
   },
+  avatarText: { fontSize: 22, lineHeight: 28, fontWeight: '600', color: colors.white },
   identityText: { flex: 1, minWidth: 0 },
-  name: { ...type.heading, color: colors.ink },
+  name: { ...type.heading, fontWeight: '600', color: colors.ink },
   phone: { ...type.body, color: colors.muted, marginTop: 2 },
 
-  sectionLabel: {
-    ...type.micro,
-    color: colors.muted,
-    letterSpacing: 1.1,
-    textTransform: 'uppercase',
-    marginTop: space.section,
-    marginBottom: space.md,
+  card: {
+    backgroundColor: colors.white,
+    borderRadius: radius.xl,
+    overflow: 'hidden',
+    ...shadow.low,
   },
-
-  card: { backgroundColor: colors.surface, borderRadius: radius.xl, overflow: 'hidden' },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: space.lg,
+    gap: space.md,
     paddingHorizontal: space.lg,
     paddingVertical: space.md,
     minHeight: 68,
   },
   rowDivider: { borderTopWidth: 1, borderTopColor: colors.line },
-  rowLabel: { ...type.body, color: colors.body, flex: 1 },
-
-  track: {
-    width: 60,
-    height: 36,
-    borderRadius: radius.pill,
-    backgroundColor: colors.track,
-    justifyContent: 'center',
-  },
-  trackOn: { backgroundColor: colors.navy },
-  knob: {
-    position: 'absolute',
-    left: 3,
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    backgroundColor: colors.white,
-    shadowColor: '#000',
-    shadowOpacity: 0.25,
-    shadowRadius: 3,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 2,
-  },
-  knobOn: { left: 27 },
-
-  langRow: { flexDirection: 'row', gap: space.md },
-  langButton: {
-    flex: 1,
-    flexDirection: 'row',
+  pressed: { opacity: 0.6 },
+  rowIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: colors.chipBlue,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: space.sm,
-    minHeight: 56,
-    backgroundColor: colors.chip,
-    borderRadius: radius.md,
   },
-  langButtonActive: { backgroundColor: colors.navy },
-  langText: { ...type.bodyStrong, color: colors.body },
+  rowBody: { flex: 1, minWidth: 0 },
+  rowLabel: { ...type.body, color: colors.ink },
+  rowDetail: { ...type.small, color: colors.muted, marginTop: 1 },
+
+  lang: {
+    flexDirection: 'row',
+    backgroundColor: colors.chip,
+    borderRadius: radius.pill,
+    padding: 3,
+    gap: 2,
+  },
+  langOption: {
+    minWidth: TOUCH,
+    minHeight: 38,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: radius.pill,
+    paddingHorizontal: space.md,
+  },
+  langOptionActive: { backgroundColor: colors.navy },
+  langText: { ...type.smallStrong, fontWeight: '600', color: colors.body },
   langTextActive: { color: colors.white },
 
-  // Acțiune distructivă: fără fundal plin, ca să nu concureze cu butoanele obișnuite.
   signOut: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: space.sm,
-    minHeight: 56,
-    marginTop: space.section,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.line,
+    minHeight: TOUCH,
+    marginTop: space.xl,
   },
-  signOutText: { ...type.bodyStrong, color: colors.magentaText },
+  signOutText: { ...type.body, color: colors.magentaText },
 });

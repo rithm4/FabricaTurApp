@@ -3,6 +3,7 @@ import { ScrollView, StyleSheet, View } from 'react-native';
 import { Text } from '../components/Text';
 import { useApp } from '../AppState';
 import { Icon } from '../components/Icon';
+import { BackButton } from '../components/BackButton';
 import { colors, radius, space, type } from '../theme';
 
 export function Bookings() {
@@ -10,7 +11,10 @@ export function Bookings() {
 
   return (
     <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-      <Text style={styles.pageTitle}>{t.bookTitle}</Text>
+      <View style={styles.header}>
+        <BackButton />
+        <Text style={styles.pageTitle}>{t.bookTitle}</Text>
+      </View>
 
       <View style={styles.list}>
         <View style={styles.card}>
@@ -42,7 +46,8 @@ export function Bookings() {
 
 const styles = StyleSheet.create({
   scroll: { paddingHorizontal: space.lg, paddingTop: space.md, paddingBottom: space.section },
-  pageTitle: { ...type.display, color: colors.ink, letterSpacing: -0.6 },
+  header: { flexDirection: 'row', alignItems: 'center', gap: space.md },
+  pageTitle: { ...type.title, fontWeight: '600', color: colors.ink, flex: 1 },
 
   list: { gap: space.lg, marginTop: space.xl },
   card: { backgroundColor: colors.surface, borderRadius: radius.xl, padding: space.xl },

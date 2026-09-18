@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { BackHandler } from 'react-native';
 
 import { content, type Departure, type Resort, type ResortId } from './data';
 import { strings, type Lang, type Strings } from './i18n';
@@ -13,7 +14,8 @@ export type ScreenName =
   | 'promo'
   | 'form'
   | 'bookings'
-  | 'profile';
+  | 'profile'
+  | 'notifSettings';
 
 /** Datele introduse la înregistrare. Aplicația nu cere nimic în plus. */
 export type Account = {
@@ -28,9 +30,22 @@ type Persisted = {
   notifOn: boolean[];
 };
 
+/** Rădăcinile tab-urilor: a ajunge la una înseamnă a începe un drum nou, deci golește istoricul. */
+const TAB_ROOTS: ScreenName[] = ['home', 'list', 'notif', 'profile'];
+
+type GoOptions = {
+  /**
+   * Golește istoricul. Pentru momentele după care drumul înapoi n-ar mai avea sens —
+   * de exemplu după trimiterea cererii, ca Înapoi să nu te ducă la formularul deja trimis.
+   */
+  reset?: boolean;
+};
+
 type AppState = {
   screen: ScreenName;
-  go: (screen: ScreenName) => void;
+  go: (screen: ScreenName, options?: GoOptions) => void;
+  /** Ecranul anterior din istoric; dacă istoricul e gol, Acasă. */
+  back: () => void;
   lang: Lang;
   setLang: (lang: Lang) => void;
   t: Strings;
@@ -63,6 +78,38 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [account, setAccount] = useState<Account>(EMPTY);
   const [departure, setDeparture] = useState<Departure | null>(null);
   const [resortId, setResortId] = useState<ResortId>('kumania');
+  /** Ecranele prin care a trecut omul, ca Înapoi să ducă de unde a venit, nu într-un loc fix. */
+  const [history, setHistory] = useState<ScreenName[]>([]);
+
+  const go = (next: ScreenName, options?: GoOptions) => {
+    if (next === screen) return;
+    if (options?.reset || next === 'signin' || TAB_ROOTS.includes(next)) setHistory([]);
+    else setHistory([...history, screen]);
+    setScreen(next);
+  };
+
+  const back = () => {
+    const previous = history[history.length - 1];
+    setHistory(history.slice(0, -1));
+    setScreen(previous ?? 'home');
+  };
+
+  // Butonul fizic Înapoi de pe Android urmează același istoric. Fără asta, închidea
+  // aplicația de pe orice ecran. Pe Acasă și pe înregistrare îl lăsăm să închidă, ca de obicei.
+  useEffect(() => {
+    const sub = BackHandler.addEventListener('hardwareBackPress', () => {
+      if (history.length > 0) {
+        back();
+        return true;
+      }
+      if (screen !== 'home' && screen !== 'signin') {
+        go('home');
+        return true;
+      }
+      return false;
+    });
+    return () => sub.remove();
+  });
   /** Cât timp citim din memorie nu afișăm nimic, ca să nu clipească ecranul de înregistrare. */
   const [restored, setRestored] = useState(false);
 
@@ -102,7 +149,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const value = useMemo<AppState>(
     () => ({
       screen,
-      go: setScreen,
+      go,
+      back,
       lang,
       setLang,
       t: strings[lang],
@@ -115,7 +163,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setDeparture,
       openResort: (id) => {
         setResortId(id);
-        setScreen('resort');
+        go('resort');
       },
       resort:
         content.resorts[lang].find((r) => r.id === resortId) ?? content.resorts[lang][0],
@@ -123,10 +171,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
       signOut: () => {
         AsyncStorage.removeItem(STORAGE_KEY).catch(() => {});
         setAccount(EMPTY);
+        setHistory([]);
         setScreen('signin');
       },
     }),
-    [screen, lang, notifOn, account, departure, resortId],
+    // `go` și `back` citesc `history` și `screen`, deci se reconstruiesc odată cu ele.
+    [screen, lang, notifOn, account, departure, resortId, history],
   );
 
   if (!restored) return null;

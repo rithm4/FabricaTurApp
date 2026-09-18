@@ -93,10 +93,12 @@ function barPath(width: number, cx: number | null) {
 }
 
 function Tab({ tab, active }: { tab: TabDef; active: boolean }) {
-  const { go } = useApp();
+  const { go, screen } = useApp();
 
   const choose = () => {
-    if (active) return;
+    // Tabul poate fi activ și când ești într-un ecran din interiorul lui (ex. Setări notificări);
+    // atunci apăsarea trebuie să te readucă la el, nu să fie ignorată.
+    if (screen === tab.target) return;
     // O vibrație scurtă confirmă atingerea. Pe web nu există, deci n-o cerem.
     if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
     go(tab.target);
@@ -108,7 +110,7 @@ function Tab({ tab, active }: { tab: TabDef; active: boolean }) {
       accessibilityRole="tab"
       accessibilityState={{ selected: active }}
       accessibilityLabel={tab.label}
-      style={({ pressed }) => [styles.tab, pressed && !active && styles.tabPressed]}
+      style={({ pressed }) => [styles.tab, pressed && screen !== tab.target && styles.tabPressed]}
     >
       {/* Locul iconiței rămâne ocupat și la tabul activ, ca etichetele să stea pe aceeași linie. */}
       <View style={styles.iconSlot}>
@@ -140,7 +142,13 @@ export function TabBar() {
     { target: 'notif', icon: 'bell', label: t.tabNotif },
     { target: 'profile', icon: 'user', label: t.tabProfile },
   ];
-  const activeIndex = tabs.findIndex((tab) => tab.target === screen);
+  // Ecranele din interiorul unui tab îl țin pe acela activ, ca omul să știe de unde a intrat.
+  const parent: Partial<Record<ScreenName, ScreenName>> = {
+    notifSettings: 'profile',
+    bookings: 'profile',
+  };
+  const current = parent[screen] ?? screen;
+  const activeIndex = tabs.findIndex((tab) => tab.target === current);
   const activeIcon = activeIndex >= 0 ? tabs[activeIndex].icon : null;
 
   const tabW = (width - SIDE * 2) / tabs.length;

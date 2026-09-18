@@ -17,6 +17,7 @@ import { TabBar } from './src/components/TabBar';
 import { Bookings } from './src/screens/Bookings';
 import { Home } from './src/screens/Home';
 import { Notifications } from './src/screens/Notifications';
+import { NotificationSettings } from './src/screens/NotificationSettings';
 import { Profile } from './src/screens/Profile';
 import { Promo } from './src/screens/Promo';
 import { RequestForm } from './src/screens/RequestForm';
@@ -48,8 +49,8 @@ function Footer() {
   if (screen === 'form') {
     return (
       <CtaBar>
-        <CtaPill icon="send" label={t.formSend} onPress={() => go('bookings')} />
-        <Pressable onPress={() => go('bookings')} style={styles.whatsapp} accessibilityRole="button">
+        <CtaPill icon="send" label={t.formSend} onPress={() => go('bookings', { reset: true })} />
+        <Pressable onPress={() => go('bookings', { reset: true })} style={styles.whatsapp} accessibilityRole="button">
           <Text style={styles.whatsappText}>{t.formWa}</Text>
         </Pressable>
       </CtaBar>
@@ -90,6 +91,7 @@ function Router() {
           {screen === 'form' && <RequestForm />}
           {screen === 'bookings' && <Bookings />}
           {screen === 'profile' && <Profile />}
+          {screen === 'notifSettings' && <NotificationSettings />}
         </Screen>
       </View>
       <Footer />

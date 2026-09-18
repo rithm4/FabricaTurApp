@@ -1,11 +1,12 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import { ImageBackground, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { ImageBackground, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Text } from '../components/Text';
+import { BackButton } from '../components/BackButton';
 import { useApp } from '../AppState';
 import { Icon } from '../components/Icon';
-import { colors, photos, radius, space, TOUCH, type } from '../theme';
+import { colors, photos, radius, space, type } from '../theme';
 
 function Included({ label, first }: { label: string; first?: boolean }) {
   return (
@@ -19,7 +20,7 @@ function Included({ label, first }: { label: string; first?: boolean }) {
 }
 
 export function Promo() {
-  const { t, go } = useApp();
+  const { t } = useApp();
   const insets = useSafeAreaInsets();
 
   return (
@@ -34,14 +35,7 @@ export function Promo() {
           locations={[0, 0.34, 1]}
           style={StyleSheet.absoluteFill}
         />
-        <Pressable
-          onPress={() => go('home')}
-          style={[styles.back, { top: insets.top + space.lg }]}
-          accessibilityRole="button"
-          accessibilityLabel="Înapoi"
-        >
-          <Icon name="arrow-left" size={24} color={colors.white} />
-        </Pressable>
+        <BackButton onDark style={[styles.back, { top: insets.top + space.lg }]} />
         <View style={styles.badge}>
           <Text style={styles.badgeText}>{t.promoBadge}</Text>
         </View>
@@ -79,18 +73,8 @@ export function Promo() {
 
 const styles = StyleSheet.create({
   hero: { height: 290, backgroundColor: '#000' },
-  back: {
-    position: 'absolute',
-    left: space.lg,
-    width: TOUCH,
-    height: TOUCH,
-    borderRadius: TOUCH / 2,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,.45)',
-    backgroundColor: 'rgba(13,20,48,.45)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+  // Doar poziția; aspectul îl dă BackButton.
+  back: { position: 'absolute', left: space.lg },
   badge: {
     position: 'absolute',
     left: space.lg,
