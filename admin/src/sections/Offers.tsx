@@ -1,94 +1,158 @@
-import { useEffect, useState } from 'react';
-import { Check } from 'lucide-react';
+import { useState } from 'react';
+import { Megaphone, Star, Thermometer } from 'lucide-react';
 
 import { api } from '../api';
 import { discountOf, euro } from '../format';
+import type { Compose, Section, SectionProps } from '../nav';
 import type { Resort } from '../types';
+import { Loading, PageHeader, useToast } from '../ui';
+
+/** Cardul de preț, așa cum îl vede clientul în aplicație — se schimbă pe măsură ce scrii. */
+function AppPreview({ resort }: { resort: Resort }) {
+  const discount = discountOf(resort);
+  return (
+    <div className="app-preview" aria-label="Cum apare în aplicație">
+      <div className="app-preview-top">
+        <span className="app-preview-name">{resort.name}</span>
+        {discount > 0 ? <span className="app-badge">Reducere {euro(discount)}</span> : null}
+      </div>
+      <div className="app-preview-price">
+        <span className="app-price">{resort.price > 0 ? euro(resort.price) : '—'}</span>
+        {discount > 0 ? <s>{euro(resort.oldPrice!)}</s> : null}
+        <span className="app-per">de persoană</span>
+      </div>
+      <div className="app-preview-facts">
+        <span>{resort.nights} nopți</span>
+        <span>
+          <Star size={13} /> {resort.rating || '—'}
+        </span>
+        <span>
+          <Thermometer size={13} /> {resort.waterTemp || '—'}
+        </span>
+      </div>
+    </div>
+  );
+}
 
 /** Formularul unui hotel. Butonul de salvare se aprinde doar când s-a schimbat ceva. */
-function ResortEditor({ resort, onSaved }: { resort: Resort; onSaved: () => void }) {
+function ResortEditor({
+  resort,
+  refresh,
+  go,
+}: {
+  resort: Resort;
+  refresh: () => Promise<void>;
+  go: (section: Section, compose?: Compose) => void;
+}) {
+  const toast = useToast();
   const [draft, setDraft] = useState(resort);
-  const [saved, setSaved] = useState(false);
-
-  useEffect(() => setDraft(resort), [resort]);
+  const [saving, setSaving] = useState(false);
 
   const changed = JSON.stringify(draft) !== JSON.stringify(resort);
-  const priceValid = draft.price > 0;
+
+  // Datele noi de pe server intră în formular doar dacă operatorul nu lucrează la el:
+  // o cerere nouă venită între timp nu trebuie să-i șteargă prețul abia scris.
+  const serverKey = JSON.stringify(resort);
+  const [base, setBase] = useState(serverKey);
+  if (serverKey !== base) {
+    setBase(serverKey);
+    if (JSON.stringify(draft) === base) setDraft(resort);
+  }
+
+  const priceValid = Number.isInteger(draft.price) && draft.price > 0;
+  const nightsValid = Number.isInteger(draft.nights) && draft.nights > 0;
   const oldPriceLow = draft.oldPrice !== null && draft.oldPrice <= draft.price;
   const discount = discountOf(draft);
+  const savedDiscount = discountOf(resort);
 
-  const set = <K extends keyof Resort>(key: K, value: Resort[K]) => {
+  const set = <K extends keyof Resort>(key: K, value: Resort[K]) =>
     setDraft((d) => ({ ...d, [key]: value }));
-    setSaved(false);
-  };
 
   const save = async () => {
-    await api.resorts.update(resort.id, draft);
-    setSaved(true);
-    onSaved();
+    setSaving(true);
+    try {
+      // Un preț vechi mai mic decât cel nou nu înseamnă reducere: nu-l păstrăm.
+      const clean = { ...draft, oldPrice: oldPriceLow ? null : draft.oldPrice };
+      setDraft(clean);
+      await api.resorts.update(resort.id, clean);
+      await refresh();
+      toast(`${resort.name} — salvat, apare acum în aplicație`);
+    } finally {
+      setSaving(false);
+    }
   };
 
+  const num = (value: string) => (value === '' ? 0 : Math.round(Number(value)));
+
   return (
-    <div className="card card-pad stack">
-      <div>
-        <h2 style={{ fontSize: 22 }}>{resort.name}</h2>
-        <p className="muted" style={{ margin: '2px 0 0' }}>
-          {resort.city.ro}
-        </p>
+    <div className="card card-pad stack offer">
+      <div className="offer-head">
+        <div>
+          <h2>{resort.name}</h2>
+          <p className="muted">{resort.city.ro}</p>
+        </div>
+        {changed ? <span className="badge badge-new">Nesalvat</span> : null}
       </div>
 
-      <div className="grid-2" style={{ gap: 14 }}>
+      <AppPreview resort={draft} />
+
+      <div className="grid-fields">
         <div className="field">
-          <label htmlFor={`${resort.id}-price`}>Preț de persoană, €</label>
-          <input
-            id={`${resort.id}-price`}
-            className="input"
-            type="number"
-            min={1}
-            value={draft.price || ''}
-            onChange={(e) => set('price', Number(e.target.value))}
-          />
+          <label htmlFor={`${resort.id}-price`}>Preț de persoană</label>
+          <div className="input-affix">
+            <input
+              id={`${resort.id}-price`}
+              className="input"
+              type="number"
+              inputMode="numeric"
+              min={1}
+              value={draft.price || ''}
+              onChange={(e) => set('price', num(e.target.value))}
+              aria-invalid={!priceValid}
+            />
+            <span>€</span>
+          </div>
         </div>
         <div className="field">
-          <label htmlFor={`${resort.id}-old`}>Preț vechi, €</label>
-          <input
-            id={`${resort.id}-old`}
-            className="input"
-            type="number"
-            min={1}
-            placeholder="fără reducere"
-            value={draft.oldPrice ?? ''}
-            onChange={(e) => set('oldPrice', e.target.value ? Number(e.target.value) : null)}
-          />
+          <label htmlFor={`${resort.id}-old`}>Preț vechi (opțional)</label>
+          <div className="input-affix">
+            <input
+              id={`${resort.id}-old`}
+              className="input"
+              type="number"
+              inputMode="numeric"
+              min={1}
+              placeholder="fără reducere"
+              value={draft.oldPrice ?? ''}
+              onChange={(e) => set('oldPrice', e.target.value ? num(e.target.value) : null)}
+              aria-invalid={oldPriceLow}
+            />
+            <span>€</span>
+          </div>
         </div>
       </div>
 
-      {/* Ce vede omul în aplicație, calculat din prețuri — nu scris de mână. */}
-      <div className="hint" style={{ fontSize: 15 }}>
-        {oldPriceLow ? (
-          <span className="hint over">
-            Prețul vechi trebuie să fie mai mare decât cel nou, altfel nu apare nicio reducere.
-          </span>
-        ) : discount > 0 ? (
-          <>
-            În aplicație apare: <span className="badge badge-new">Reducere {euro(discount)}</span>{' '}
-            și prețul tăiat {euro(draft.oldPrice!)}.
-          </>
-        ) : (
-          'Fără reducere: în aplicație apare doar prețul.'
-        )}
-      </div>
+      {/* Reducerea se calculează din prețuri — nu se scrie de mână. */}
+      <p className={oldPriceLow ? 'field-note over' : 'field-note'}>
+        {oldPriceLow
+          ? 'Prețul vechi trebuie să fie mai mare decât cel nou. Altfel nu apare nicio reducere.'
+          : discount > 0
+            ? `Clientul vede reducerea de ${euro(discount)}, calculată din cele două prețuri.`
+            : 'Completează prețul vechi doar când faci o reducere.'}
+      </p>
 
-      <div className="grid-2" style={{ gap: 14 }}>
+      <div className="grid-fields grid-fields-3">
         <div className="field">
           <label htmlFor={`${resort.id}-nights`}>Nopți</label>
           <input
             id={`${resort.id}-nights`}
             className="input"
             type="number"
+            inputMode="numeric"
             min={1}
-            value={draft.nights}
-            onChange={(e) => set('nights', Number(e.target.value))}
+            value={draft.nights || ''}
+            onChange={(e) => set('nights', num(e.target.value))}
+            aria-invalid={!nightsValid}
           />
         </div>
         <div className="field">
@@ -97,69 +161,63 @@ function ResortEditor({ resort, onSaved }: { resort: Resort; onSaved: () => void
             id={`${resort.id}-rating`}
             className="input"
             value={draft.rating}
+            placeholder="8,9"
             onChange={(e) => set('rating', e.target.value)}
+          />
+        </div>
+        <div className="field">
+          <label htmlFor={`${resort.id}-water`}>Apa la sursă</label>
+          <input
+            id={`${resort.id}-water`}
+            className="input"
+            value={draft.waterTemp}
+            placeholder="38–40 °C"
+            onChange={(e) => set('waterTemp', e.target.value)}
           />
         </div>
       </div>
 
-      <div className="field">
-        <label htmlFor={`${resort.id}-water`}>Temperatura apei la sursă</label>
-        <input
-          id={`${resort.id}-water`}
-          className="input"
-          value={draft.waterTemp}
-          onChange={(e) => set('waterTemp', e.target.value)}
-        />
-      </div>
-
-      <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+      <div className="form-actions">
         <button
           type="button"
           className="btn btn-primary"
-          disabled={!changed || !priceValid}
+          disabled={!changed || !priceValid || !nightsValid || saving}
           onClick={save}
         >
-          Salvează
+          {saving ? 'Se salvează…' : 'Salvează'}
         </button>
         {changed ? (
           <button type="button" className="btn btn-ghost" onClick={() => setDraft(resort)}>
             Renunță
           </button>
-        ) : null}
-        {saved && !changed ? (
-          <span className="saved">
-            <Check size={17} /> Salvat
-          </span>
+        ) : savedDiscount > 0 ? (
+          // O reducere salvată se vinde mai bine anunțată.
+          <button
+            type="button"
+            className="btn btn-quiet"
+            onClick={() => go('notificari', { audience: 'promo', target: resort.id })}
+          >
+            <Megaphone size={17} /> Anunță reducerea
+          </button>
         ) : null}
       </div>
     </div>
   );
 }
 
-export function Offers() {
-  const [resorts, setResorts] = useState<Resort[]>([]);
-
-  const refresh = async () => setResorts(await api.resorts.list());
-
-  useEffect(() => {
-    refresh();
-  }, []);
+export function Offers({ data, ready, refresh, go }: SectionProps) {
+  if (!ready) return <Loading />;
 
   return (
     <>
-      <header className="page-header">
-        <div>
-          <h1>Oferte</h1>
-          <p>
-            Prețurile și detaliile fiecărui hotel. Ce salvezi aici apare în aplicație — fără o
-            versiune nouă a aplicației.
-          </p>
-        </div>
-      </header>
+      <PageHeader
+        title="Oferte"
+        text="Prețurile și detaliile fiecărui hotel. Ce salvezi apare în aplicație pe loc, fără o versiune nouă a aplicației."
+      />
 
-      <div className="grid-2">
-        {resorts.map((resort) => (
-          <ResortEditor key={resort.id} resort={resort} onSaved={refresh} />
+      <div className="offers">
+        {data.resorts.map((resort) => (
+          <ResortEditor key={resort.id} resort={resort} refresh={refresh} go={go} />
         ))}
       </div>
     </>

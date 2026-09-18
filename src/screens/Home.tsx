@@ -42,7 +42,7 @@ function DestinationTile({ resort }: { resort: Resort }) {
 }
 
 export function Home() {
-  const { t, go, fullName, resorts, departuresFor } = useApp();
+  const { t, go, fullName, resorts, departuresFor, unreadCount } = useApp();
   // Cardul de sus arată întotdeauna prima plecare din listă, ca cele două să nu se contrazică.
   /** Oferta săptămânii e a primei destinații din listă. */
   const featured = resorts[0];
@@ -67,10 +67,13 @@ export function Home() {
             onPress={() => go('notif')}
             style={styles.bell}
             accessibilityRole="button"
-            accessibilityLabel={t.tabNotif}
+            accessibilityLabel={
+              unreadCount > 0 ? `${t.tabNotif}, ${unreadCount} ${t.a11yUnread}` : t.tabNotif
+            }
           >
             <Icon name="bell" size={22} color={colors.navy} />
-            <View style={styles.bellDot} />
+            {/* Punctul apare doar când chiar e ceva nou — altfel nu mai înseamnă nimic. */}
+            {unreadCount > 0 ? <View style={styles.bellDot} /> : null}
           </Press>
         </View>
 

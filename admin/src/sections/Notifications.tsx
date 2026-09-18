@@ -1,30 +1,47 @@
-import { useEffect, useState } from 'react';
-import { Check, Send } from 'lucide-react';
+import { useRef, useState, type ComponentType } from 'react';
+import {
+  BellOff,
+  CalendarPlus,
+  Copy,
+  Megaphone,
+  Newspaper,
+  Send,
+  Sparkles,
+  Tag,
+  type LucideProps,
+} from 'lucide-react';
 
 import { api } from '../api';
-import { audienceLabel, formatDateTime, targetLabel } from '../format';
+import { audienceLabel, buildTemplate, formatDateTime, targetLabel } from '../format';
+import type { Compose, SectionProps } from '../nav';
 import type {
   Audience,
   Lang,
   Localized,
   NotificationTarget,
-  Resort,
   SentNotification,
 } from '../types';
+import { DeleteButton, Empty, Loading, PageHeader, useToast } from '../ui';
 
 /** Cât încape pe ecranul de blocare fără să fie tăiat. Peste, sistemul pune „…". */
 const TITLE_MAX = 50;
 const BODY_MAX = 150;
 
-const AUDIENCES: Audience[] = ['promo', 'lastSeats', 'newDepartures', 'news'];
+const AUDIENCES: { id: Audience; icon: ComponentType<LucideProps> }[] = [
+  { id: 'promo', icon: Tag },
+  { id: 'lastSeats', icon: Megaphone },
+  { id: 'newDepartures', icon: CalendarPlus },
+  { id: 'news', icon: Newspaper },
+];
 const EMPTY: Localized = { ro: '', ru: '' };
+const LANGS: Lang[] = ['ro', 'ru'];
 
 function Counter({ value, max }: { value: string; max: number }) {
   const over = value.length > max;
   return (
-    <span className={over ? 'hint over' : 'hint'}>
+    <span className={over ? 'counter over' : 'counter'}>
+      {over ? 'prea lung pentru ecranul telefonului · ' : ''}
       {value.length} / {max}
-      {over ? ' — se va tăia pe telefon' : ''}
     </span>
   );
 }
@@ -61,9 +78,58 @@ function PhonePreview({ title, body, lang }: { title: string; body: string; lang
   );
 }
 
-export function Notifications() {
-  const [resorts, setResorts] = useState<Resort[]>([]);
-  const [history, setHistory] = useState<SentNotification[]>([]);
+function HistoryItem({
+  item,
+  target,
+  onReuse,
+  onRemove,
+}: {
+  item: SentNotification;
+  target: string;
+  onReuse: () => void;
+  onRemove: () => Promise<void>;
+}) {
+  const [lang, setLang] = useState<Lang>('ro');
+
+  return (
+    <li className="history-item">
+      <div className="history-meta">
+        <span className="badge badge-called">{audienceLabel[item.audience]}</span>
+        <span className="hint">
+          {formatDateTime(item.sentAt)} · duce la {target}
+        </span>
+      </div>
+      <div className="history-text">
+        <div className="list-title">{item.title[lang]}</div>
+        <div className="list-sub">{item.body[lang]}</div>
+      </div>
+      <div className="history-actions">
+        <div className="segmented segmented-sm" role="radiogroup" aria-label="Limba textului">
+          {LANGS.map((l) => (
+            <button
+              key={l}
+              type="button"
+              role="radio"
+              aria-checked={lang === l}
+              className="seg"
+              onClick={() => setLang(l)}
+            >
+              {l.toUpperCase()}
+            </button>
+          ))}
+        </div>
+        <button type="button" className="btn btn-sm btn-quiet" onClick={onReuse}>
+          <Copy size={16} /> Folosește ca model
+        </button>
+        <DeleteButton label="Șterge notificarea din aplicație" onConfirm={onRemove} />
+      </div>
+    </li>
+  );
+}
+
+export function Notifications({ data, ready, refresh, compose }: SectionProps & { compose?: Compose }) {
+  const toast = useToast();
+  const { resorts, departures, notifications: history } = data;
 
   const [audience, setAudience] = useState<Audience>('promo');
   const [target, setTarget] = useState<NotificationTarget>('promo');
@@ -71,73 +137,102 @@ export function Notifications() {
   const [body, setBody] = useState<Localized>(EMPTY);
   const [previewLang, setPreviewLang] = useState<Lang>('ro');
   const [confirming, setConfirming] = useState(false);
-  const [justSent, setJustSent] = useState<SentNotification | null>(null);
+  const [sending, setSending] = useState(false);
+  const formRef = useRef<HTMLDivElement>(null);
 
-  const refresh = async () => {
-    const [r, h] = await Promise.all([api.resorts.list(), api.notifications.list()]);
-    setResorts(r);
-    setHistory(h);
+  /** Hotelul despre care e vorba: cel spre care duce notificarea, altfel primul din ofertă. */
+  const templateResort =
+    resorts.find((r) => r.id === target) ?? resorts.find((r) => r.id === 'kumania') ?? resorts[0];
+  const template = templateResort ? buildTemplate(audience, templateResort, departures) : null;
+
+  const fill = (t: { title: Localized; body: Localized }) => {
+    setTitle(t.title);
+    setBody(t.body);
+    setConfirming(false);
   };
 
-  useEffect(() => {
-    refresh();
-  }, []);
+  // Venit din „Anunță" (Dashboard sau Plecări): categoria, hotelul și textul sunt deja pregătite.
+  const [applied, setApplied] = useState<Compose | undefined>(undefined);
+  if (compose && ready && applied !== compose) {
+    setApplied(compose);
+    setAudience(compose.audience);
+    setTarget(compose.target);
+    const resort = resorts.find((r) => r.id === compose.target);
+    const t = resort ? buildTemplate(compose.audience, resort, departures) : null;
+    if (t) fill(t);
+  }
+
+  if (!ready) return <Loading />;
 
   // Ambele limbi sunt obligatorii: cine folosește aplicația în rusă ar primi altfel un mesaj gol.
   const complete = [title.ro, title.ru, body.ro, body.ru].every((s) => s.trim().length > 0);
+  const dirty = [title.ro, title.ru, body.ro, body.ru].some((s) => s.trim().length > 0);
 
   const send = async () => {
-    const sent = await api.notifications.send({ audience, target, title, body });
-    setJustSent(sent);
-    setConfirming(false);
-    setTitle(EMPTY);
-    setBody(EMPTY);
-    await refresh();
+    setSending(true);
+    try {
+      await api.notifications.send({ audience, target, title, body });
+      await refresh();
+      setTitle(EMPTY);
+      setBody(EMPTY);
+      setConfirming(false);
+      toast('Notificare trimisă — apare acum în aplicație');
+    } finally {
+      setSending(false);
+    }
   };
 
   const edit = (setter: typeof setTitle, lang: Lang) => (value: string) => {
     setter((current) => ({ ...current, [lang]: value }));
     setConfirming(false);
-    setJustSent(null);
+  };
+
+  const reuse = (n: SentNotification) => {
+    setAudience(n.audience);
+    setTarget(n.target);
+    fill({ title: n.title, body: n.body });
+    formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    toast('Textul e copiat în formular — modifică-l și trimite');
+  };
+
+  const remove = async (n: SentNotification) => {
+    await api.notifications.remove(n.id);
+    await refresh();
+    toast('Notificare ștearsă din aplicație');
   };
 
   return (
     <>
-      <header className="page-header">
-        <div>
-          <h1>Notificări</h1>
-          <p>
-            Scrie mesajul în ambele limbi și alege cui îl trimiți. Îl primesc doar cei care au
-            pornită categoria respectivă în setările aplicației.
-          </p>
-        </div>
-      </header>
+      <PageHeader
+        title="Notificări"
+        text="Mesajul apare în lista „Noutăți” a aplicației, în limba fiecărui client. Îl primesc cei care au pornită categoria aleasă."
+      />
 
-      <div className="grid-2" style={{ alignItems: 'start' }}>
+      <div className="compose" ref={formRef}>
         <div className="card card-pad stack">
           <div className="stack" style={{ gap: 10 }}>
-            <span className="label">Cui trimiți</span>
+            <span className="label">1 · Despre ce e</span>
             <div className="audiences">
-              {AUDIENCES.map((a) => (
+              {AUDIENCES.map(({ id, icon: Icon }) => (
                 <button
-                  key={a}
+                  key={id}
                   type="button"
                   className="audience"
-                  aria-pressed={audience === a}
+                  aria-pressed={audience === id}
                   onClick={() => {
-                    setAudience(a);
+                    setAudience(id);
                     setConfirming(false);
                   }}
                 >
-                  <strong>{audienceLabel[a]}</strong>
-                  <span>Cei care au pornită această categorie</span>
+                  <Icon size={20} />
+                  <strong>{audienceLabel[id]}</strong>
                 </button>
               ))}
             </div>
           </div>
 
           <div className="field">
-            <label htmlFor="target">Unde duce apăsarea</label>
+            <label htmlFor="target">2 · Unde duce apăsarea</label>
             <select
               id="target"
               className="select"
@@ -147,64 +242,88 @@ export function Notifications() {
               <option value="promo">{targetLabel('promo', resorts)}</option>
               {resorts.map((r) => (
                 <option key={r.id} value={r.id}>
-                  {r.name}
+                  Pagina hotelului {r.name}
                 </option>
               ))}
               <option value="bookings">{targetLabel('bookings', resorts)}</option>
             </select>
           </div>
 
-          {(['ro', 'ru'] as Lang[]).map((lang) => (
-            <fieldset key={lang} className="stack" style={{ border: 0, padding: 0, margin: 0, gap: 12 }}>
-              <legend className="section-title" style={{ padding: 0 }}>
-                {lang === 'ro' ? 'Textul în română' : 'Textul în rusă'}
-              </legend>
-              <div className="field">
-                <label htmlFor={`title-${lang}`}>Titlu</label>
-                <input
-                  id={`title-${lang}`}
-                  className="input"
-                  value={title[lang]}
-                  onChange={(e) => edit(setTitle, lang)(e.target.value)}
-                  onFocus={() => setPreviewLang(lang)}
-                  placeholder={lang === 'ro' ? 'Reducere 68 € la Kumánia' : 'Скидка 68 € в Кумании'}
-                />
-                <Counter value={title[lang]} max={TITLE_MAX} />
-              </div>
-              <div className="field">
-                <label htmlFor={`body-${lang}`}>Text</label>
-                <textarea
-                  id={`body-${lang}`}
-                  className="textarea"
-                  value={body[lang]}
-                  onChange={(e) => edit(setBody, lang)(e.target.value)}
-                  onFocus={() => setPreviewLang(lang)}
-                  placeholder={
-                    lang === 'ro'
-                      ? 'Plecare 12 octombrie, 7 nopți cu transport.'
-                      : 'Выезд 12 октября, 7 ночей с транспортом.'
+          <div className="stack" style={{ gap: 10 }}>
+            <div className="label-row">
+              <span className="label">3 · Textul</span>
+              {/* Cifrele vin din ofertă și din plecări: prețul și data nu pot fi greșite. */}
+              {audience !== 'news' ? (
+                <button
+                  type="button"
+                  className="btn btn-sm btn-secondary btn-wrap"
+                  disabled={!template}
+                  onClick={() => template && fill(template)}
+                  title={
+                    template
+                      ? `Scrie textul din datele pentru ${templateResort?.name}`
+                      : 'Nu există plecări potrivite pentru un text automat'
                   }
-                />
-                <Counter value={body[lang]} max={BODY_MAX} />
-              </div>
-            </fieldset>
-          ))}
+                >
+                  <Sparkles size={16} /> Completează din ofertă · {templateResort?.name}
+                </button>
+              ) : null}
+            </div>
 
-          {/* Trimiterea nu se poate retrage, deci cere o confirmare. */}
+            <div className="lang-cols">
+              {LANGS.map((lang) => (
+                <fieldset key={lang} className="lang-col">
+                  <legend>{lang === 'ro' ? 'Română' : 'Русский'}</legend>
+                  <div className="field">
+                    <label htmlFor={`title-${lang}`}>Titlu</label>
+                    <input
+                      id={`title-${lang}`}
+                      className="input"
+                      value={title[lang]}
+                      onChange={(e) => edit(setTitle, lang)(e.target.value)}
+                      onFocus={() => setPreviewLang(lang)}
+                      placeholder={lang === 'ro' ? 'Reducere 68 € la Kumánia' : 'Скидка 68 € в Кумании'}
+                    />
+                    <Counter value={title[lang]} max={TITLE_MAX} />
+                  </div>
+                  <div className="field">
+                    <label htmlFor={`body-${lang}`}>Text</label>
+                    <textarea
+                      id={`body-${lang}`}
+                      className="textarea"
+                      value={body[lang]}
+                      onChange={(e) => edit(setBody, lang)(e.target.value)}
+                      onFocus={() => setPreviewLang(lang)}
+                      placeholder={
+                        lang === 'ro'
+                          ? 'Plecare 12 octombrie, 7 nopți cu transport.'
+                          : 'Выезд 12 октября, 7 ночей с транспортом.'
+                      }
+                    />
+                    <Counter value={body[lang]} max={BODY_MAX} />
+                  </div>
+                </fieldset>
+              ))}
+            </div>
+          </div>
+
+          {/* Trimiterea nu se poate retrage din telefoane, deci cere o confirmare. */}
           {confirming ? (
             <div className="confirm">
-              <span>Trimiți notificarea? Apare imediat în aplicație. Nu se poate anula.</span>
-              <span style={{ display: 'flex', gap: 8 }}>
+              <span>
+                Trimiți notificarea către „{audienceLabel[audience]}”? Apare imediat în aplicație.
+              </span>
+              <span className="confirm-actions">
                 <button type="button" className="btn btn-ghost" onClick={() => setConfirming(false)}>
                   Nu încă
                 </button>
-                <button type="button" className="btn btn-primary" onClick={send}>
-                  <Send size={17} /> Da, trimite
+                <button type="button" className="btn btn-primary" onClick={send} disabled={sending}>
+                  <Send size={17} /> {sending ? 'Se trimite…' : 'Da, trimite'}
                 </button>
               </span>
             </div>
           ) : (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
+            <div className="form-actions">
               <button
                 type="button"
                 className="btn btn-primary"
@@ -213,26 +332,34 @@ export function Notifications() {
               >
                 <Send size={17} /> Trimite notificarea
               </button>
+              {dirty ? (
+                <button
+                  type="button"
+                  className="btn btn-ghost"
+                  onClick={() => {
+                    setTitle(EMPTY);
+                    setBody(EMPTY);
+                  }}
+                >
+                  Golește
+                </button>
+              ) : null}
               {!complete ? (
                 <span className="hint">Completează titlul și textul în ambele limbi.</span>
-              ) : null}
-              {justSent ? (
-                <span className="saved">
-                  <Check size={17} /> Trimisă — apare acum în aplicație
-                </span>
               ) : null}
             </div>
           )}
         </div>
 
-        <div className="stack" style={{ position: 'sticky', top: 24 }}>
-          <div className="chips" style={{ justifyContent: 'center' }}>
-            {(['ro', 'ru'] as Lang[]).map((lang) => (
+        <div className="compose-preview">
+          <div className="segmented" role="radiogroup" aria-label="Limba previzualizării">
+            {LANGS.map((lang) => (
               <button
                 key={lang}
                 type="button"
-                className="chip"
-                aria-pressed={previewLang === lang}
+                role="radio"
+                aria-checked={previewLang === lang}
+                className="seg"
                 onClick={() => setPreviewLang(lang)}
               >
                 {lang === 'ro' ? 'Română' : 'Русский'}
@@ -244,41 +371,30 @@ export function Notifications() {
       </div>
 
       <h2 className="section-title" style={{ marginTop: 40 }}>
-        Trimise
+        Trimise <span className="muted">· {history.length}</span>
       </h2>
       <div className="card">
         {history.length === 0 ? (
-          <p className="empty">Nicio notificare trimisă încă.</p>
+          <Empty
+            icon={<BellOff size={26} />}
+            title="Nicio notificare trimisă încă"
+            text="Ce trimiți apare aici, cu data și categoria."
+          />
         ) : (
-          <div className="table-wrap">
-            <table className="table">
-              <thead>
-                <tr>
-                  <th>Când</th>
-                  <th>Mesaj</th>
-                  <th>Cui</th>
-                  <th>Duce la</th>
-                </tr>
-              </thead>
-              <tbody>
-                {history.map((n) => (
-                  <tr key={n.id}>
-                    <td className="muted" style={{ whiteSpace: 'nowrap' }}>
-                      {formatDateTime(n.sentAt)}
-                    </td>
-                    <td>
-                      <div className="strong">{n.title.ro}</div>
-                      <div className="muted">{n.body.ro}</div>
-                    </td>
-                    <td>{audienceLabel[n.audience]}</td>
-                    <td>{targetLabel(n.target, resorts)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <ul className="history">
+            {history.map((n) => (
+              <HistoryItem
+                key={n.id}
+                item={n}
+                target={targetLabel(n.target as NotificationTarget, resorts)}
+                onReuse={() => reuse(n)}
+                onRemove={() => remove(n)}
+              />
+            ))}
+          </ul>
         )}
       </div>
     </>
   );
 }
+

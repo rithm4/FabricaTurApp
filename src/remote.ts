@@ -1,5 +1,5 @@
 import { supabase } from './supabase';
-import { content, type Departure, type NotificationItem, type NotificationTarget, type Resort } from './data';
+import { content, type Audience, type Departure, type NotificationItem, type NotificationTarget, type Resort } from './data';
 import type { IconName } from './components/Icon';
 import type { Lang, Strings } from './i18n';
 
@@ -33,7 +33,7 @@ type DepartureRow = {
 type NotificationRow = {
   id: string;
   sent_at: string;
-  audience: 'promo' | 'lastSeats' | 'newDepartures' | 'news';
+  audience: Audience;
   target: string;
   title_ro: string;
   title_ru: string;
@@ -156,10 +156,13 @@ const ICON: Record<NotificationRow['audience'], IconName> = {
 const TARGETS: NotificationTarget[] = ['promo', 'kumania', 'hungarospa', 'bookings'];
 
 export function buildNotifications(remote: Remote, lang: Lang, t: Strings): NotificationItem[] {
-  if (!remote.notifications) return content.notifications[lang];
+  // Fără server nu arătăm nimic inventat: lista goală spune adevărul.
+  if (!remote.notifications) return [];
 
   return remote.notifications.map((n) => ({
     id: n.id,
+    audience: n.audience,
+    sentAt: n.sent_at,
     icon: ICON[n.audience] ?? 'news',
     target: TARGETS.includes(n.target as NotificationTarget)
       ? (n.target as NotificationTarget)
@@ -174,3 +177,53 @@ export function buildNotifications(remote: Remote, lang: Lang, t: Strings): Noti
 /** Plecările de pe server au id-uri UUID; cele locale, de rezervă, nu — pe acelea nu le trimitem. */
 export const isServerId = (id: string | undefined) =>
   !!id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+
+// ── Cererile de ofertă ──────────────────────────────────────────────────────
+
+export type RequestStatus = 'new' | 'called' | 'booked' | 'cancelled';
+
+/**
+ * Trimite cererea și întoarce numărul ei de pe server — cu el, și doar cu el, aplicația
+ * își poate afla mai târziu starea. `''` când a primit-o fără număr (funcția lipsește pe
+ * server), `null` când n-a primit-o deloc.
+ */
+export async function submitRequest(input: {
+  name: string;
+  phone: string;
+  resortId: string;
+  departureId: string | null;
+  party: string;
+  lang: Lang;
+}): Promise<string | null> {
+  const { data, error } = await supabase.rpc('submit_request', {
+    p_name: input.name,
+    p_phone: input.phone,
+    p_resort_id: input.resortId,
+    p_departure_id: input.departureId,
+    p_party: input.party,
+    p_lang: input.lang,
+  });
+  if (!error && typeof data === 'string') return data;
+
+  // Rezervă: dacă funcția nu există încă pe server, cererea tot ajunge la agenție,
+  // doar că fără număr, deci fără stare urmărită.
+  const fallback = await supabase.from('requests').insert({
+    name: input.name,
+    phone: input.phone,
+    resort_id: input.resortId,
+    departure_id: input.departureId,
+    party: input.party,
+    lang: input.lang,
+  });
+  return fallback.error ? null : '';
+}
+
+/** Starea cererilor proprii, după numerele lor. Serverul nu întoarce nimic altceva. */
+export async function fetchRequestStatuses(ids: string[]): Promise<Record<string, RequestStatus>> {
+  if (ids.length === 0) return {};
+  const { data, error } = await supabase.rpc('request_statuses', { p_ids: ids });
+  if (error || !Array.isArray(data)) return {};
+  return Object.fromEntries(
+    (data as { id: string; status: RequestStatus }[]).map((row) => [row.id, row.status]),
+  );
+}

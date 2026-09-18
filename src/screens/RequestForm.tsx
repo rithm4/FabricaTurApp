@@ -15,8 +15,7 @@ import { BackButton } from '../components/BackButton';
 import { CtaBar, CtaPill } from '../components/CtaPill';
 import { useApp, type OfferRequest } from '../AppState';
 import { agency, profile } from '../data';
-import { isServerId } from '../remote';
-import { supabase } from '../supabase';
+import { isServerId, submitRequest } from '../remote';
 import { Icon } from '../components/Icon';
 import { colors, radius, space, TOUCH, type, webInputReset } from '../theme';
 
@@ -48,16 +47,18 @@ export function RequestForm() {
     if (sending) return;
     setSending(true);
 
-    // Cererea pleacă în baza de date și apare pe loc în panoul operatorului.
-    const { error } = await supabase.from('requests').insert({
+    // Cererea pleacă în baza de date și apare pe loc în panoul operatorului. Numărul primit
+    // înapoi e cheia cu care aplicația află mai târziu ce a făcut agenția cu ea.
+    const serverId = await submitRequest({
       name: name.trim(),
       phone: phone.trim(),
-      resort_id: resort.id,
+      resortId: resort.id,
       // Plecările de rezervă din data.ts nu există pe server; atunci cererea pleacă fără dată.
-      departure_id: isServerId(departure?.id) ? departure!.id : null,
+      departureId: isServerId(departure?.id) ? departure!.id : null,
       party,
       lang,
     });
+    const received = serverId !== null;
 
     const request: OfferRequest = {
       id: String(Date.now()),
@@ -66,7 +67,9 @@ export function RequestForm() {
       party,
       createdAt: Date.now(),
       // Starea spune cinstit ce s-a întâmplat: ajunsă la agenție, sau doar salvată pe telefon.
-      channel: !error ? 'sent' : viaWhatsApp ? 'whatsapp' : 'saved',
+      channel: received ? 'sent' : viaWhatsApp ? 'whatsapp' : 'saved',
+      serverId: serverId || undefined,
+      status: received ? 'new' : undefined,
     };
     addRequest(request);
 

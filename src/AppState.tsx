@@ -2,15 +2,17 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { BackHandler } from 'react-native';
 
-import { type Departure, type NotificationItem, type Resort, type ResortId } from './data';
+import { AUDIENCES, type Departure, type NotificationItem, type Resort, type ResortId } from './data';
 import {
   EMPTY_REMOTE,
   buildDepartures,
   buildNotifications,
   buildResorts,
   fetchRemote,
+  fetchRequestStatuses,
   onRemoteChange,
   type Remote,
+  type RequestStatus,
 } from './remote';
 import { strings, type Lang, type Strings } from './i18n';
 
@@ -43,6 +45,10 @@ export type OfferRequest = {
   createdAt: number;
   /** Pe unde a plecat: la agenție prin server, pe WhatsApp, sau doar salvată pe telefon. */
   channel: 'sent' | 'whatsapp' | 'saved';
+  /** Numărul cererii pe server; cu el aflăm ce a făcut agenția cu ea. */
+  serverId?: string;
+  /** Ultima stare știută de la agenție: sunată, rezervată, anulată. */
+  status?: RequestStatus;
 };
 
 type Persisted = {
@@ -50,6 +56,8 @@ type Persisted = {
   lang: Lang;
   notifOn: boolean[];
   requests: OfferRequest[];
+  /** Momentul celei mai noi notificări văzute; ce e mai nou apare ca necitit. */
+  notifSeenAt: string;
 };
 
 /** Rădăcinile tab-urilor: a ajunge la una înseamnă a începe un drum nou, deci golește istoricul. */
@@ -86,8 +94,16 @@ type AppState = {
   resorts: Resort[];
   /** Plecările unui hotel, de pe server când sunt disponibile. */
   departuresFor: (resortId: ResortId) => Departure[];
-  /** Noutățile trimise din panoul operatorului. */
+  /** Noutățile trimise din panoul operatorului, doar din categoriile pornite în setări. */
   notifications: NotificationItem[];
+  /** Câte noutăți n-a văzut încă omul. */
+  unreadCount: number;
+  /** Momentul până la care noutățile sunt văzute. */
+  notifSeenAt: string;
+  /** Marchează toate noutățile ca văzute — la deschiderea ecranului Noutăți. */
+  markNotifsSeen: () => void;
+  /** Întreabă agenția ce s-a întâmplat cu cererile trimise. */
+  refreshStatuses: () => void;
   /** Cererile trimise, cea mai nouă prima. */
   requests: OfferRequest[];
   addRequest: (request: OfferRequest) => void;
@@ -112,6 +128,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [departure, setDeparture] = useState<Departure | null>(null);
   const [resortId, setResortId] = useState<ResortId>('kumania');
   const [requests, setRequests] = useState<OfferRequest[]>([]);
+  const [notifSeenAt, setNotifSeenAt] = useState('');
   /** Ce a venit de pe server. Până răspunde, și dacă nu răspunde, ecranele folosesc data.ts. */
   const [remote, setRemote] = useState<Remote>(EMPTY_REMOTE);
 
@@ -172,6 +189,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         if (saved.lang) setLang(saved.lang);
         if (saved.notifOn) setNotifOn(saved.notifOn);
         if (saved.requests) setRequests(saved.requests);
+        if (saved.notifSeenAt) setNotifSeenAt(saved.notifSeenAt);
         if (saved.account?.phone) {
           setAccount(saved.account);
           setScreen('home');
@@ -192,12 +210,42 @@ export function AppProvider({ children }: { children: ReactNode }) {
   // altfel prima scriere ar suprascrie ce tocmai încercam să restaurăm.
   useEffect(() => {
     if (!restored) return;
-    const payload: Persisted = { account, lang, notifOn, requests };
+    const payload: Persisted = { account, lang, notifOn, requests, notifSeenAt };
     AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(payload)).catch(() => {});
-  }, [restored, account, lang, notifOn, requests]);
+  }, [restored, account, lang, notifOn, requests, notifSeenAt]);
+
+  // Starea cererilor se schimbă în panou; aplicația o întreabă la pornire și din Rezervări.
+  const serverIds = requests.map((r) => r.serverId).filter((id): id is string => !!id);
+  const idsKey = serverIds.join(',');
+  const refreshStatuses = () => {
+    if (!idsKey) return;
+    fetchRequestStatuses(idsKey.split(',')).then((found) => {
+      if (Object.keys(found).length === 0) return;
+      setRequests((current) =>
+        current.map((r) =>
+          r.serverId && found[r.serverId] && found[r.serverId] !== r.status
+            ? { ...r, status: found[r.serverId] }
+            : r,
+        ),
+      );
+    });
+  };
+  useEffect(() => {
+    if (restored) refreshStatuses();
+  }, [restored, idsKey]);
 
   // Hotelurile cu prețurile de pe server, în limba aleasă; data.ts când serverul lipsește.
   const resorts = useMemo(() => buildResorts(remote, lang, strings[lang]), [remote, lang]);
+
+  // Noutățile arată doar categoriile pornite în setări — exact ce promite ecranul de setări.
+  const notifications = useMemo(
+    () =>
+      buildNotifications(remote, lang, strings[lang]).filter(
+        (n) => notifOn[AUDIENCES.indexOf(n.audience)] !== false,
+      ),
+    [remote, lang, notifOn],
+  );
+  const unreadCount = notifications.filter((n) => n.sentAt > notifSeenAt).length;
 
   const value = useMemo<AppState>(
     () => ({
@@ -224,7 +272,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
       resort: resorts.find((r) => r.id === resortId) ?? resorts[0],
       resorts,
       departuresFor: (id) => buildDepartures(remote, lang, id),
-      notifications: buildNotifications(remote, lang, strings[lang]),
+      notifications,
+      unreadCount,
+      notifSeenAt,
+      markNotifsSeen: () => {
+        // Ora serverului, nu a telefonului: un ceas dat înainte n-ar ascunde noutăți viitoare.
+        const newest = notifications.reduce((max, n) => (n.sentAt > max ? n.sentAt : max), notifSeenAt);
+        if (newest !== notifSeenAt) setNotifSeenAt(newest);
+      },
+      refreshStatuses,
       fullName: [account.firstName, account.lastName].filter(Boolean).join(' '),
       signOut: () => {
         AsyncStorage.removeItem(STORAGE_KEY).catch(() => {});
@@ -236,7 +292,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       },
     }),
     // `go` și `back` citesc `history` și `screen`, deci se reconstruiesc odată cu ele.
-    [screen, lang, notifOn, account, departure, resortId, history, requests, remote],
+    [screen, lang, notifOn, account, departure, resortId, history, requests, remote, notifSeenAt],
   );
 
   if (!restored) return null;

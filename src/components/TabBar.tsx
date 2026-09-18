@@ -93,7 +93,8 @@ function barPath(width: number, cx: number | null) {
 }
 
 function Tab({ tab, active }: { tab: TabDef; active: boolean }) {
-  const { go, screen } = useApp();
+  const { go, screen, unreadCount, t } = useApp();
+  const unread = tab.target === 'notif' && unreadCount > 0;
 
   const choose = () => {
     // Tabul poate fi activ și când ești într-un ecran din interiorul lui (ex. Setări notificări);
@@ -109,12 +110,13 @@ function Tab({ tab, active }: { tab: TabDef; active: boolean }) {
       onPress={choose}
       accessibilityRole="tab"
       accessibilityState={{ selected: active }}
-      accessibilityLabel={tab.label}
+      accessibilityLabel={unread ? `${tab.label}, ${unreadCount} ${t.a11yUnread}` : tab.label}
       style={({ pressed }) => [styles.tab, pressed && screen !== tab.target && styles.tabPressed]}
     >
       {/* Locul iconiței rămâne ocupat și la tabul activ, ca etichetele să stea pe aceeași linie. */}
       <View style={styles.iconSlot}>
         {active ? null : <Icon name={tab.icon} size={23} color={colors.muted} />}
+        {unread && !active ? <View style={styles.dot} /> : null}
       </View>
       <Text style={[styles.label, active && styles.labelActive]} numberOfLines={1}>
         {tab.label}
@@ -257,6 +259,17 @@ const styles = StyleSheet.create({
   tab: { flex: 1, alignItems: 'center', paddingTop: space.md },
   tabPressed: { opacity: 0.5 },
   iconSlot: { height: 26, alignItems: 'center', justifyContent: 'center' },
+  dot: {
+    position: 'absolute',
+    top: -1,
+    right: -5,
+    width: 11,
+    height: 11,
+    borderRadius: 6,
+    backgroundColor: colors.magenta,
+    borderWidth: 2,
+    borderColor: colors.white,
+  },
   label: { ...type.micro, fontWeight: '500', color: colors.muted, marginTop: 4 },
   labelActive: { color: colors.navy, fontWeight: '600' },
 

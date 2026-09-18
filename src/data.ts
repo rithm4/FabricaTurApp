@@ -35,9 +35,15 @@ export type Resort = {
 /** Unde duce apăsarea pe o notificare: la promoție, la un hotel anume sau la rezervări. */
 export type NotificationTarget = 'promo' | ResortId | 'bookings';
 
+/** Cele patru categorii, în ordinea comutatoarelor din setări (`notifOn[0]` = promo …). */
+export const AUDIENCES = ['promo', 'lastSeats', 'newDepartures', 'news'] as const;
+export type Audience = (typeof AUDIENCES)[number];
+
 export type NotificationItem = {
-  /** Există doar la notificările venite de pe server. */
-  id?: string;
+  id: string;
+  audience: Audience;
+  /** Momentul trimiterii, ISO — după el știm ce e necitit. */
+  sentAt: string;
   icon: IconName;
   target: NotificationTarget;
   title: string;
@@ -102,23 +108,6 @@ const resorts: Record<Lang, Resort[]> = {
   ],
 };
 
-const notifications: Record<Lang, NotificationItem[]> = {
-  ro: [
-    { icon: 'tag', target: 'promo', title: 'Reducere 68 € la Kumánia', text: 'Plecare 12 octombrie, 7 zile cu transport.', when: 'acum 2 ore', accent: true },
-    { icon: 'clock', target: 'hungarospa', title: 'Au rămas 4 locuri', text: 'Hajdúszoboszló, plecare 19 octombrie.', when: 'ieri' },
-    { icon: 'calendar', target: 'kumania', title: 'Plecări noi în noiembrie', text: 'Sunt deschise înscrierile pentru 3 date noi.', when: 'acum 3 zile' },
-    { icon: 'news', target: 'kumania', title: 'Bazin nou la Kumánia', text: 'Zona de wellness a fost extinsă.', when: 'acum 5 zile' },
-    { icon: 'phone', target: 'bookings', title: 'Cererea ta a fost primită', text: 'Consultantul te contactează azi.', when: 'acum o săptămână' },
-  ],
-  ru: [
-    { icon: 'tag', target: 'promo', title: 'Скидка 68 € в Кумании', text: 'Выезд 12 октября, 7 дней с транспортом.', when: '2 часа назад', accent: true },
-    { icon: 'clock', target: 'hungarospa', title: 'Осталось 4 места', text: 'Хайдусобосло, выезд 19 октября.', when: 'вчера' },
-    { icon: 'calendar', target: 'kumania', title: 'Новые выезды в ноябре', text: 'Открыта запись на 3 новые даты.', when: '3 дня назад' },
-    { icon: 'news', target: 'kumania', title: 'Новый бассейн в Кумании', text: 'Зона wellness стала больше.', when: '5 дней назад' },
-    { icon: 'phone', target: 'bookings', title: 'Заявка получена', text: 'Консультант свяжется с вами сегодня.', when: 'неделю назад' },
-  ],
-};
-
 /** Etichetele celor patru comutatoare din ecranul de profil. */
 const notificationSettings: Record<Lang, string[]> = {
   ro: ['Promoții cu preț redus', 'Ultimele locuri la o plecare', 'Plecări noi în calendar', 'Noutăți despre stațiuni'],
@@ -162,7 +151,7 @@ const departures: Record<Lang, Departure[]> = {
 /** Sub acest prag, numărul de locuri devine un semnal, nu o informație. */
 export const LOW_SEATS = 6;
 
-export const content = { resorts, notifications, notificationSettings, departures };
+export const content = { resorts, notificationSettings, departures };
 
 /**
  * Datele agenției.

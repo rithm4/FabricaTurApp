@@ -41,6 +41,8 @@ export const colors = {
   pinkSurface: '#FDE7F2',
   pinkChip: '#F9CCE4',
   pinkInk: '#8A0E52', //     7.9:1 pe pinkSurface
+  greenSurface: '#E3F4EA', // rezervare confirmată
+  greenInk: '#155C38', //    7.4:1 pe greenSurface
   track: '#C2CBE0', //       comutator în poziția oprit
   amber: '#F5A300', //       steaua de rating; sensul e purtat de cifra alăturată
   whatsapp: '#25D366',

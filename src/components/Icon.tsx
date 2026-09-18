@@ -27,6 +27,7 @@ const feather = {
   'chevron-right': 'chevron-right',
   globe: 'globe',
   'log-out': 'log-out',
+  x: 'x',
 } as const;
 
 const community = {

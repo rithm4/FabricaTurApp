@@ -87,6 +87,7 @@ type RequestRow = {
   party: string;
   status: RequestStatus;
   lang: 'ro' | 'ru';
+  note: string | null;
 };
 
 const toRequest = (r: RequestRow): OfferRequest => ({
@@ -99,6 +100,8 @@ const toRequest = (r: RequestRow): OfferRequest => ({
   party: r.party,
   status: r.status,
   lang: r.lang,
+  // Înainte de rularea lui 002-notite.sql coloana lipsește; atunci notița e goală.
+  note: r.note ?? '',
 });
 
 type NotificationRow = {
@@ -171,6 +174,13 @@ export const api = {
     async setStatus(requestId: string, status: RequestStatus): Promise<void> {
       check(await supabase.from('requests').update({ status }).eq('id', requestId));
     },
+    async setNote(requestId: string, note: string): Promise<void> {
+      check(await supabase.from('requests').update({ note: note.trim() }).eq('id', requestId));
+    },
+    /** Pentru cereri de test sau trimise din greșeală. Cererile reale se anulează, nu se șterg. */
+    async remove(requestId: string): Promise<void> {
+      check(await supabase.from('requests').delete().eq('id', requestId));
+    },
   },
 
   notifications: {
@@ -199,6 +209,10 @@ export const api = {
           .single(),
       );
       return toNotification(row);
+    },
+    /** Dispare și din lista „Noutăți” a aplicației, pe loc. */
+    async remove(notificationId: string): Promise<void> {
+      check(await supabase.from('notifications').delete().eq('id', notificationId));
     },
   },
 

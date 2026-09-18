@@ -58,7 +58,9 @@ create table if not exists public.requests (
   party        text not null check (party in ('1', '2', '3+')),
   lang         text not null check (lang in ('ro', 'ru')),
   status       text not null default 'new'
-               check (status in ('new', 'called', 'booked', 'cancelled'))
+               check (status in ('new', 'called', 'booked', 'cancelled')),
+  -- Notița operatorului; aplicația nu o poate completa.
+  note         text not null default '' check (char_length(note) <= 1000)
 );
 
 -- Lista operatorilor. Se completează doar din acest editor SQL, nu din aplicație.
@@ -96,7 +98,7 @@ create policy "oricine citeste notificarile" on public.notifications for select 
 -- Aplicația poate trimite o cerere, doar ca „nouă" — dar nu poate citi cererile nimănui.
 drop policy if exists "oricine trimite o cerere" on public.requests;
 create policy "oricine trimite o cerere" on public.requests
-  for insert with check (status = 'new');
+  for insert with check (status = 'new' and note = '');
 
 -- Operatorii pot face orice.
 drop policy if exists "operatorii gestioneaza hotelurile"   on public.resorts;
@@ -156,3 +158,8 @@ select * from (values
   ('hungarospa', date '2026-11-16', 7,  24, 18)
 ) as v(resort_id, start_date, nights, seats_total, seats_left)
 where not exists (select 1 from public.departures);
+
+
+-- ── După acest fișier ────────────────────────────────────────────────────────
+-- Rulează și 003-stari-si-locuri.sql: starea cererilor pentru client și locurile
+-- care scad singure la rezervare. (002-notite.sql e deja inclus mai sus.)

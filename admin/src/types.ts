@@ -50,6 +50,8 @@ export type OfferRequest = {
   status: RequestStatus;
   /** Limba în care folosește omul aplicația — în ea trebuie sunat. */
   lang: Lang;
+  /** Notița operatorului — ce s-a vorbit, când trebuie sunat din nou. */
+  note: string;
 };
 
 /** Cele patru categorii pe care omul le poate porni sau opri din setările aplicației. */
