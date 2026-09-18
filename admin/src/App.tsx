@@ -5,6 +5,7 @@ import {
   Inbox,
   LayoutDashboard,
   LogOut,
+  MapPin,
   RefreshCw,
   Settings as SettingsIcon,
   Tag,
@@ -17,6 +18,7 @@ import { ALL_TABLES, EMPTY_DATA, loadAll, useLive } from './live';
 import { Login } from './Login';
 import type { Compose, Section } from './nav';
 import { Departures } from './sections/Departures';
+import { Destinations } from './sections/Destinations';
 import { Notifications } from './sections/Notifications';
 import { Offers } from './sections/Offers';
 import { Requests } from './sections/Requests';
@@ -31,6 +33,7 @@ const NAV: { id: Section; label: string; icon: ComponentType<LucideProps> }[] = 
   { id: 'cereri', label: 'Cereri', icon: Inbox },
   { id: 'notificari', label: 'Notificări', icon: Bell },
   { id: 'oferte', label: 'Oferte', icon: Tag },
+  { id: 'destinatii', label: 'Destinații', icon: MapPin },
   { id: 'plecari', label: 'Plecări', icon: CalendarDays },
   { id: 'setari', label: 'Setări', icon: SettingsIcon },
 ];
@@ -82,6 +85,17 @@ function Panel({ email }: { email: string | null }) {
       {/* Pe telefon: logo sus, meniul jos, la îndemâna degetului. */}
       <header className="topbar">
         <img src="./logo.png" alt="Fabrica Tur" />
+        <span className="topbar-actions">
+          <button
+            type="button"
+            className="btn btn-icon btn-quiet"
+            onClick={() => go('setari')}
+            aria-label="Setări"
+            aria-current={section === 'setari' ? 'page' : undefined}
+            title="Setări"
+          >
+            <SettingsIcon size={19} />
+          </button>
         <button
           type="button"
           className="btn btn-icon btn-quiet"
@@ -91,6 +105,7 @@ function Panel({ email }: { email: string | null }) {
         >
           <LogOut size={19} />
         </button>
+        </span>
       </header>
 
       <aside className="sidebar">
@@ -104,7 +119,8 @@ function Panel({ email }: { email: string | null }) {
             <button
               key={id}
               type="button"
-              className="nav-item"
+              // Pe telefon, Setările stau sus, lângă ieșire: jos ar fi prea multe butoane.
+              className={id === 'setari' ? 'nav-item nav-secondary' : 'nav-item'}
               aria-current={section === id ? 'page' : undefined}
               onClick={() => go(id)}
             >
@@ -172,6 +188,7 @@ function Panel({ email }: { email: string | null }) {
             {section === 'cereri' && <Requests {...props} />}
             {section === 'notificari' && <Notifications {...props} compose={compose} />}
             {section === 'oferte' && <Offers {...props} />}
+            {section === 'destinatii' && <Destinations {...props} />}
             {section === 'plecari' && <Departures {...props} />}
             {section === 'setari' && <Settings {...props} />}
           </>

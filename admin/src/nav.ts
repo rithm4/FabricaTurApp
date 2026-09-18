@@ -1,7 +1,7 @@
 import type { AllData } from './live';
 import type { Audience, NotificationTarget } from './types';
 
-export type Section = 'azi' | 'cereri' | 'notificari' | 'oferte' | 'plecari' | 'setari';
+export type Section = 'azi' | 'cereri' | 'notificari' | 'oferte' | 'destinatii' | 'plecari' | 'setari';
 
 /** Notificarea pregătită din alt ecran — de exemplu „Anunță clienții" de lângă o plecare. */
 export type Compose = { audience: Audience; target: NotificationTarget };

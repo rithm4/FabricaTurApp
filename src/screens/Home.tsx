@@ -95,10 +95,12 @@ export function Home() {
             {featured.discount && (
               <DiscountBadge discount={featured.discount} style={styles.cardBadge} />
             )}
-            <View style={styles.cardRating}>
-              <Icon name="star-filled" size={15} color={colors.amber} />
-              <Text style={styles.cardRatingText}>{featured.rating}</Text>
-            </View>
+            {featured.rating ? (
+              <View style={styles.cardRating}>
+                <Icon name="star-filled" size={15} color={colors.amber} />
+                <Text style={styles.cardRatingText}>{featured.rating}</Text>
+              </View>
+            ) : null}
           </View>
 
           <View style={styles.cardBody}>
@@ -149,11 +151,27 @@ export function Home() {
           </Pressable>
         </View>
 
-        <View style={styles.tiles}>
-          {resorts.map((resort) => (
-            <DestinationTile key={resort.id} resort={resort} />
-          ))}
-        </View>
+        {resorts.length <= 2 ? (
+          <View style={styles.tiles}>
+            {resorts.map((resort) => (
+              <DestinationTile key={resort.id} resort={resort} />
+            ))}
+          </View>
+        ) : (
+          // Cu mai multe destinații, cardurile își păstrează lățimea și se derulează.
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.tilesScroll}
+            style={styles.tilesScrollBox}
+          >
+            {resorts.map((resort) => (
+              <View key={resort.id} style={styles.tileFixed}>
+                <DestinationTile resort={resort} />
+              </View>
+            ))}
+          </ScrollView>
+        )}
       </ScrollView>
     </View>
   );
@@ -272,6 +290,10 @@ const styles = StyleSheet.create({
   link: { ...type.smallStrong, color: colors.link },
 
   tiles: { flexDirection: 'row', gap: space.md, marginTop: space.md },
+  // Derularea ajunge până la marginile ecranului, dar primul card stă aliniat cu textul.
+  tilesScrollBox: { marginHorizontal: -space.lg, marginTop: space.md },
+  tilesScroll: { gap: space.md, paddingHorizontal: space.lg },
+  tileFixed: { width: 160, flexDirection: 'row' },
   tile: {
     flex: 1,
     height: 170,

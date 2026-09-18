@@ -1,6 +1,7 @@
 import { supabase } from './supabase';
 import { content, type Audience, type Departure, type NotificationItem, type NotificationTarget, type Resort } from './data';
 import type { IconName } from './components/Icon';
+import { photos } from './theme';
 import type { Lang, Strings } from './i18n';
 
 /**
@@ -14,6 +15,10 @@ import type { Lang, Strings } from './i18n';
 type ResortRow = {
   id: string;
   name?: string;
+  /** 010: o destinație ascunsă din panou nu apare în aplicație. */
+  active?: boolean;
+  /** 010: ordinea în lista de destinații. */
+  position?: number;
   city_ro: string;
   city_ru: string;
   price: number;
@@ -140,11 +145,38 @@ function relative(iso: string, t: Strings) {
   return fill(t.relDays, Math.round(hours / 24));
 }
 
+/**
+ * Fișa de pornire a unei destinații adăugate din panou. Până se încarcă fotografii,
+ * aplicația arată o fotografie generică de bazin termal, nu un spațiu gol.
+ */
+const blankResort = (id: string): Resort => ({
+  id,
+  name: '',
+  city: '',
+  price: '',
+  rating: '',
+  waterTemp: '',
+  nights: 7,
+  tags: [],
+  gallery: [{ uri: photos.pool }],
+  featured: false,
+  short: '',
+  badge: '',
+  includes: [],
+  features: [],
+});
+
 /** Oferta săptămânii prima: ecranele o iau de pe primul loc. */
 const featuredFirst = (list: Resort[]) =>
   [...list].sort((a, b) => Number(b.featured) - Number(a.featured));
 
-export function buildResorts(remote: Remote, lang: Lang, t: Strings): Resort[] {
+export function buildResorts(
+  remote: Remote,
+  lang: Lang,
+  t: Strings,
+  /** Previzualizarea din panou: destinația arătată, chiar ascunsă, ca ofertă a săptămânii. */
+  previewId?: string,
+): Resort[] {
   const local = content.resorts[lang];
   if (!remote.resorts) return featuredFirst(local);
 
@@ -153,9 +185,14 @@ export function buildResorts(remote: Remote, lang: Lang, t: Strings): Resort[] {
   const pick = <T,>(ro: T | undefined, ru: T | undefined, fallback: T) =>
     (lang === 'ro' ? ro : ru) ?? fallback;
 
-  return featuredFirst(local.map((resort) => {
-    const row = remote.resorts?.find((r) => r.id === resort.id);
-    if (!row) return resort;
+  // Destinațiile vin de pe server, în ordinea din panou, fără cele ascunse. O destinație
+  // nouă n-are nimic în aplicație: pornește de la o fișă goală, completată din panou.
+  const rows = remote.resorts
+    .filter((r) => r.active !== false || r.id === previewId)
+    .sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
+
+  return featuredFirst(rows.map((row) => {
+    const resort = local.find((r) => r.id === row.id) ?? blankResort(row.id);
     // Reducerea se calculează din prețuri, exact ca în panou — nu poate contrazice prețul.
     const discount = row.old_price && row.old_price > row.price ? row.old_price - row.price : 0;
     return {
@@ -168,7 +205,7 @@ export function buildResorts(remote: Remote, lang: Lang, t: Strings): Resort[] {
       nights: row.nights,
       discount: discount ? { label: t.discountLabel, value: `${discount} €` } : undefined,
       name: row.name || resort.name,
-      featured: row.featured ?? resort.featured,
+      featured: previewId ? row.id === previewId : (row.featured ?? resort.featured),
       short: pick(row.short_ro, row.short_ru, resort.short),
       badge: pick(row.badge_ro, row.badge_ru, resort.badge),
       includes: pick(row.includes_ro, row.includes_ru, resort.includes),
@@ -215,7 +252,6 @@ const ICON: Record<NotificationRow['audience'], IconName> = {
   news: 'news',
 };
 
-const TARGETS: NotificationTarget[] = ['promo', 'kumania', 'hungarospa', 'bookings'];
 
 /** Datele agenției din panou (Setări): numărul de WhatsApp și sloganul. */
 export function buildSettings(remote: Remote, lang: Lang, t: Strings) {
@@ -229,15 +265,17 @@ export function buildSettings(remote: Remote, lang: Lang, t: Strings) {
 export function buildNotifications(remote: Remote, lang: Lang, t: Strings): NotificationItem[] {
   // Fără server nu arătăm nimic inventat: lista goală spune adevărul.
   if (!remote.notifications) return [];
+  const visible = new Set(
+    (remote.resorts ?? content.resorts[lang]).filter((r) => (r as { active?: boolean }).active !== false).map((r) => r.id),
+  );
 
   return remote.notifications.map((n) => ({
     id: n.id,
     audience: n.audience,
     sentAt: n.sent_at,
     icon: ICON[n.audience] ?? 'news',
-    target: TARGETS.includes(n.target as NotificationTarget)
-      ? (n.target as NotificationTarget)
-      : 'promo',
+    // Doar spre o destinație care chiar se vede în aplicație; altfel, spre ofertă.
+    target: n.target === 'bookings' || visible.has(n.target) ? n.target : 'promo',
     title: lang === 'ro' ? n.title_ro : n.title_ru,
     text: lang === 'ro' ? n.body_ro : n.body_ru,
     when: relative(n.sent_at, t),

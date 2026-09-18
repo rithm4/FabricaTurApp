@@ -5,8 +5,11 @@ import type { Lang } from './i18n';
 import { kumania } from './images';
 import { photos } from './theme';
 
-/** Identificatorii celor două destinații pe care le are agenția în acest moment. */
-export type ResortId = 'kumania' | 'hungarospa';
+/**
+ * Identificatorul unei destinații („kumania", „hungarospa"). Destinațiile noi se adaugă
+ * din panou, deci lista nu e fixă în aplicație.
+ */
+export type ResortId = string;
 
 /**
  * Reducerea se ține despărțită în etichetă și cifră, ca eticheta vizuală să le poată
@@ -45,7 +48,7 @@ export type Resort = {
 };
 
 /** Unde duce apăsarea pe o notificare: la promoție, la un hotel anume sau la rezervări. */
-export type NotificationTarget = 'promo' | ResortId | 'bookings';
+export type NotificationTarget = 'promo' | 'bookings' | ResortId;
 
 /** Cele patru categorii, în ordinea comutatoarelor din setări (`notifOn[0]` = promo …). */
 export const AUDIENCES = ['promo', 'lastSeats', 'newDepartures', 'news'] as const;

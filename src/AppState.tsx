@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
-import { AppState as SystemAppState, BackHandler } from 'react-native';
+import { AppState as SystemAppState, BackHandler, Platform } from 'react-native';
 
 import { AUDIENCES, type Departure, type NotificationItem, type Resort, type ResortId } from './data';
 import {
@@ -138,13 +138,37 @@ function mergeRemote(base: Remote, update: Remote): Remote {
   };
 }
 
+/**
+ * Previzualizarea din panou: aplicația deschisă într-un telefon desenat în panou, direct pe
+ * pagina ofertei sau a hotelului (`?preview=promo&resort=kumania&lang=ro`). Nu cere
+ * înregistrare, nu scrie nimic pe telefon și nu trimite cereri: e doar de privit.
+ */
+type Preview = { screen: 'promo' | 'resort'; resort: string; lang: Lang };
+
+function readPreview(): Preview | null {
+  if (Platform.OS !== 'web' || typeof window === 'undefined') return null;
+  const params = new URLSearchParams(window.location.search);
+  const screen = params.get('preview');
+  if (screen !== 'promo' && screen !== 'resort') return null;
+  return {
+    screen,
+    resort: params.get('resort') ?? '',
+    lang: params.get('lang') === 'ru' ? 'ru' : 'ro',
+  };
+}
+
+const PREVIEW = readPreview();
+
+/** Aplicația e deschisă ca previzualizare în panou. */
+export const IS_PREVIEW = PREVIEW !== null;
+
 export function AppProvider({ children }: { children: ReactNode }) {
-  const [screen, setScreen] = useState<ScreenName>('signin');
-  const [lang, setLang] = useState<Lang>('ro');
+  const [screen, setScreen] = useState<ScreenName>(PREVIEW?.screen ?? 'signin');
+  const [lang, setLang] = useState<Lang>(PREVIEW?.lang ?? 'ro');
   const [notifOn, setNotifOn] = useState([true, true, true, true]);
   const [account, setAccount] = useState<Account>(EMPTY);
   const [departure, setDeparture] = useState<Departure | null>(null);
-  const [resortId, setResortId] = useState<ResortId>('kumania');
+  const [resortId, setResortId] = useState<ResortId>(PREVIEW?.resort || 'kumania');
   const [requests, setRequests] = useState<OfferRequest[]>([]);
   const [notifSeenAt, setNotifSeenAt] = useState('');
   /** Ce a venit de pe server. Până răspunde, și dacă nu răspunde, ecranele folosesc data.ts. */
@@ -192,6 +216,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [history, setHistory] = useState<ScreenName[]>([]);
 
   const go = (next: ScreenName, options?: GoOptions) => {
+    // În previzualizare se privește doar pagina deschisă din panou.
+    if (PREVIEW) return;
     if (next === screen) return;
     if (options?.reset || next === 'signin' || TAB_ROOTS.includes(next)) setHistory([]);
     else setHistory([...history, screen]);
@@ -199,6 +225,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   };
 
   const back = () => {
+    if (PREVIEW) return;
     const previous = history[history.length - 1];
     setHistory(history.slice(0, -1));
     setScreen(previous ?? 'home');
@@ -225,6 +252,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let alive = true;
+    // Previzualizarea nu citește contul omului de pe acest dispozitiv.
+    if (PREVIEW) {
+      setRestored(true);
+      return;
+    }
 
     AsyncStorage.getItem(STORAGE_KEY)
       .then((raw) => {
@@ -253,7 +285,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   // Salvăm la fiecare schimbare, dar abia după ce am terminat de citit,
   // altfel prima scriere ar suprascrie ce tocmai încercam să restaurăm.
   useEffect(() => {
-    if (!restored) return;
+    if (!restored || PREVIEW) return;
     const payload: Persisted = { account, lang, notifOn, requests, notifSeenAt };
     AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(payload)).catch(() => {});
   }, [restored, account, lang, notifOn, requests, notifSeenAt]);
@@ -297,7 +329,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
   });
 
   // Hotelurile cu prețurile de pe server, în limba aleasă; data.ts când serverul lipsește.
-  const resorts = useMemo(() => buildResorts(remote, lang, strings[lang]), [remote, lang]);
+  const resorts = useMemo(
+    () => buildResorts(remote, lang, strings[lang], PREVIEW?.resort),
+    [remote, lang],
+  );
 
   // Noutățile arată doar categoriile pornite în setări — exact ce promite ecranul de setări.
   const notifications = useMemo(

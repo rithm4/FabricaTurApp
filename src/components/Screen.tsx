@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { Animated, StyleSheet } from 'react-native';
 
 import { useReducedMotion } from './Press';
+import { IS_PREVIEW } from '../AppState';
 import { motion } from '../theme';
 
 /**
@@ -14,7 +15,8 @@ export function Screen({ children }: { children: React.ReactNode }) {
   const reduced = useReducedMotion();
 
   useEffect(() => {
-    if (reduced) {
+    // În previzualizarea din panou pagina apare pe loc: acolo se privește, nu se navighează.
+    if (reduced || IS_PREVIEW) {
       progress.setValue(1);
       return;
     }

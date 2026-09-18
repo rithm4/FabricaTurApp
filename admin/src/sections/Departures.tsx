@@ -335,7 +335,8 @@ function AddDeparture({
 }
 
 export function Departures({ data, ready, refresh, go }: SectionProps) {
-  const [resortId, setResortId] = useState<ResortId>('kumania');
+  // Prima destinație din listă, până alege operatorul alta.
+  const [resortId, setResortId] = useState<ResortId | null>(null);
   const [showPast, setShowPast] = useState(false);
   if (!ready) return <Loading />;
 

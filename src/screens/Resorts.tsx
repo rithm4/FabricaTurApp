@@ -27,10 +27,12 @@ function ResortCard({ resort }: { resort: Resort }) {
           style={StyleSheet.absoluteFill}
         />
         {resort.discount && <DiscountBadge discount={resort.discount} style={styles.badge} />}
-        <View style={styles.rating}>
-          <Icon name="star-filled" size={15} color={colors.amber} />
-          <Text style={styles.ratingText}>{resort.rating}</Text>
-        </View>
+        {resort.rating ? (
+          <View style={styles.rating}>
+            <Icon name="star-filled" size={15} color={colors.amber} />
+            <Text style={styles.ratingText}>{resort.rating}</Text>
+          </View>
+        ) : null}
       </ImageBackground>
 
       <View style={styles.body}>

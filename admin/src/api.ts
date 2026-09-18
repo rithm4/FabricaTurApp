@@ -40,6 +40,8 @@ type ResortRow = {
   water_temp: string;
   nights: number;
   offer_until?: string | null;
+  active?: boolean;
+  position?: number;
   featured?: boolean;
   short_ro?: string;
   short_ru?: string;
@@ -67,6 +69,8 @@ const toResort = (r: ResortRow): Resort => ({
   nights: r.nights,
   offerUntil: r.offer_until ?? null,
   featured: r.featured ?? false,
+  active: r.active ?? true,
+  position: r.position ?? 0,
   short: { ro: r.short_ro ?? '', ru: r.short_ru ?? '' },
   badge: { ro: r.badge_ro ?? '', ru: r.badge_ru ?? '' },
   includes: { ro: r.includes_ro ?? [], ru: r.includes_ru ?? [] },
@@ -182,6 +186,11 @@ export const api = {
         await supabase
           .from('resorts')
           .update({
+            ...(patch.name !== undefined && { name: patch.name.trim() }),
+            ...(patch.city !== undefined && {
+              city_ro: patch.city.ro.trim(),
+              city_ru: patch.city.ru.trim(),
+            }),
             ...(patch.price !== undefined && { price: patch.price }),
             ...(patch.oldPrice !== undefined && { old_price: patch.oldPrice }),
             ...(patch.rating !== undefined && { rating: patch.rating }),
@@ -213,6 +222,39 @@ export const api = {
           })
           .eq('id', resortId),
       );
+    },
+    /**
+     * Adaugă o destinație nouă, ascunsă din aplicație până e gata: operatorul îi completează
+     * întâi textele și fotografiile, apoi o face vizibilă.
+     */
+    async create(input: {
+      id: string;
+      name: string;
+      city: { ro: string; ru: string };
+      price: number;
+      nights: number;
+      position: number;
+    }): Promise<void> {
+      check(
+        await supabase.from('resorts').insert({
+          id: input.id,
+          name: input.name.trim(),
+          city_ro: input.city.ro.trim(),
+          city_ru: input.city.ru.trim(),
+          price: input.price,
+          nights: input.nights,
+          position: input.position,
+          active: false,
+        }),
+      );
+    },
+    async setActive(resortId: ResortId, active: boolean): Promise<void> {
+      check(await supabase.from('resorts').update({ active }).eq('id', resortId));
+    },
+    /** Schimbă locul a două destinații în listă (săgețile sus / jos). */
+    async swapPositions(a: Resort, b: Resort): Promise<void> {
+      check(await supabase.from('resorts').update({ position: b.position }).eq('id', a.id));
+      check(await supabase.from('resorts').update({ position: a.position }).eq('id', b.id));
     },
     /**
      * Face din hotelul dat oferta săptămânii. Întâi le scoate pe celelalte: serverul

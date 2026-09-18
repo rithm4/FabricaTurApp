@@ -1,7 +1,7 @@
 import { Pressable, StyleSheet, type StyleProp, type ViewStyle } from 'react-native';
 
 import { Icon } from './Icon';
-import { useApp } from '../AppState';
+import { IS_PREVIEW, useApp } from '../AppState';
 import { colors, TOUCH } from '../theme';
 
 type Props = {
@@ -16,6 +16,8 @@ type Props = {
  */
 export function BackButton({ onDark, style }: Props) {
   const { t, back } = useApp();
+  // În previzualizarea din panou nu există „înapoi": se vede o singură pagină.
+  if (IS_PREVIEW) return null;
 
   return (
     <Pressable

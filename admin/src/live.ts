@@ -57,8 +57,8 @@ export async function loadAll() {
     api.notifications.list(),
     api.settings.get(),
   ]);
-  // Aceeași ordine ca în aplicație: oferta săptămânii prima.
-  const resorts = [...resortList].sort((a, b) => Number(b.featured) - Number(a.featured));
+  // Aceeași ordine ca în lista de destinații din aplicație.
+  const resorts = [...resortList].sort((a, b) => a.position - b.position);
   return { resorts, departures, requests, notifications, settings };
 }
 

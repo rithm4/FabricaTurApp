@@ -73,13 +73,18 @@ export function ResortDetail() {
 
       <View style={styles.content}>
         <View style={styles.stats}>
-          <Stat icon="thermometer" color={colors.navy} value={resort.waterTemp} label={t.water} />
-          <Stat
-            icon="star-filled"
-            color={colors.amber}
-            value={`${resort.rating} / 10`}
-            label="Booking"
-          />
+          {/* O destinație nouă poate să nu aibă încă nota sau temperatura: nu arătăm casete goale. */}
+          {resort.waterTemp ? (
+            <Stat icon="thermometer" color={colors.navy} value={resort.waterTemp} label={t.water} />
+          ) : null}
+          {resort.rating ? (
+            <Stat
+              icon="star-filled"
+              color={colors.amber}
+              value={`${resort.rating} / 10`}
+              label="Booking"
+            />
+          ) : null}
           <Stat
             icon="moon"
             color={colors.navy}

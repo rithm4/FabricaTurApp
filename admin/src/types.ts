@@ -8,7 +8,8 @@ export type Lang = 'ro' | 'ru';
 /** Un text în ambele limbi ale aplicației. Operatorul le completează pe amândouă. */
 export type Localized = Record<Lang, string>;
 
-export type ResortId = 'kumania' | 'hungarospa';
+/** Identificatorul unei destinații: scurt, fără spații („kumania"). Se adaugă din panou. */
+export type ResortId = string;
 
 export type Resort = {
   id: ResortId;
@@ -28,6 +29,10 @@ export type Resort = {
   offerUntil: string | null;
   /** Oferta săptămânii: o singură stațiune, arătată prima în aplicație. */
   featured: boolean;
+  /** Afișată în aplicație. Una ascunsă rămâne în panou, cu cererile și plecările ei. */
+  active: boolean;
+  /** Locul în lista de destinații; mai mic = mai sus. */
+  position: number;
   /** Ce e inclus, pe scurt („Transport și mic dejun"). */
   short: Localized;
   /** Eticheta de pe fotografia ofertei; goală = nu apare. */
@@ -81,7 +86,7 @@ export type OfferRequest = {
 export type Audience = 'promo' | 'lastSeats' | 'newDepartures' | 'news';
 
 /** Unde duce notificarea când omul apasă pe ea. */
-export type NotificationTarget = 'promo' | ResortId | 'bookings';
+export type NotificationTarget = 'promo' | 'bookings' | ResortId;
 
 export type SentNotification = {
   id: string;

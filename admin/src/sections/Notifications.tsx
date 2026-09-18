@@ -142,7 +142,7 @@ export function Notifications({ data, ready, refresh, compose }: SectionProps & 
 
   /** Hotelul despre care e vorba: cel spre care duce notificarea, altfel primul din ofertă. */
   const templateResort =
-    resorts.find((r) => r.id === target) ?? resorts.find((r) => r.id === 'kumania') ?? resorts[0];
+    resorts.find((r) => r.id === target) ?? resorts.find((r) => r.featured) ?? resorts[0];
   const template = templateResort ? buildTemplate(audience, templateResort, departures) : null;
 
   const fill = (t: { title: Localized; body: Localized }) => {
