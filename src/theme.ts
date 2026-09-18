@@ -57,15 +57,19 @@ export const colors = {
  * Scara tipografică. Nimic destinat citirii nu coboară sub `small` (15px).
  * `micro` este rezervat badge-urilor și etichetelor scurte scrise cu majuscule.
  */
+/*
+ * Greutăți: 500 pentru ce se citește, 600 pentru titluri, accente și ce se apasă.
+ * Nimic la 700 — când totul e bold, nimic nu mai iese în evidență și pagina arată apăsată.
+ */
 export const type = {
-  display: { fontSize: 28, lineHeight: 34, fontWeight: '700' },
-  title: { fontSize: 22, lineHeight: 28, fontWeight: '700' },
-  heading: { fontSize: 18, lineHeight: 24, fontWeight: '700' },
+  display: { fontSize: 28, lineHeight: 34, fontWeight: '600' },
+  title: { fontSize: 22, lineHeight: 28, fontWeight: '600' },
+  heading: { fontSize: 18, lineHeight: 24, fontWeight: '600' },
   body: { fontSize: 17, lineHeight: 25, fontWeight: '500' },
-  bodyStrong: { fontSize: 17, lineHeight: 25, fontWeight: '700' },
+  bodyStrong: { fontSize: 17, lineHeight: 25, fontWeight: '600' },
   small: { fontSize: 15, lineHeight: 22, fontWeight: '500' },
-  smallStrong: { fontSize: 15, lineHeight: 22, fontWeight: '700' },
-  micro: { fontSize: 14, lineHeight: 18, fontWeight: '700' },
+  smallStrong: { fontSize: 15, lineHeight: 22, fontWeight: '600' },
+  micro: { fontSize: 14, lineHeight: 18, fontWeight: '600' },
 } as const;
 
 /** Scara de spațiere. Pentru 50+, aerul dintre grupuri înlocuiește liniile de separare. */

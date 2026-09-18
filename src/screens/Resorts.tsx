@@ -6,7 +6,7 @@ import { DiscountBadge } from '../components/DiscountBadge';
 import { Price } from '../components/Price';
 import { PillButton } from '../components/PillButton';
 import { useApp } from '../AppState';
-import { content, type Resort } from '../data';
+import type { Resort } from '../data';
 import { Icon } from '../components/Icon';
 import { colors, radius, shadow, space, type } from '../theme';
 
@@ -18,7 +18,7 @@ function ResortCard({ resort }: { resort: Resort }) {
       onPress={() => openResort(resort.id)}
       style={styles.card}
       accessibilityRole="button"
-      accessibilityLabel={`${resort.name}, ${resort.city}, de la ${resort.price}, nota ${resort.rating}`}
+      accessibilityLabel={`${resort.name}, ${resort.city}, ${t.a11yFrom} ${resort.price}, ${t.a11yRating} ${resort.rating}`}
     >
       <ImageBackground source={resort.gallery[0]} style={styles.photo} resizeMode="cover">
         <LinearGradient
@@ -65,13 +65,13 @@ function ResortCard({ resort }: { resort: Resort }) {
 }
 
 export function Resorts() {
-  const { t, lang } = useApp();
+  const { t, resorts } = useApp();
 
   return (
     <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
       <Text style={styles.title}>{t.listTitle}</Text>
       <View style={styles.list}>
-        {content.resorts[lang].map((resort) => (
+        {resorts.map((resort) => (
           <ResortCard key={resort.name} resort={resort} />
         ))}
       </View>
@@ -90,7 +90,8 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white,
     ...shadow.card,
   },
-  photo: { height: 180, backgroundColor: '#000' },
+  // Lățimea e obligatorie: vezi nota din Promo.tsx.
+  photo: { width: '100%', height: 180, backgroundColor: '#000' },
   badge: { position: 'absolute', left: space.md, top: space.md },
   rating: {
     position: 'absolute',

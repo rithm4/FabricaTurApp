@@ -50,7 +50,7 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   row: { flexDirection: 'row', alignItems: 'baseline', gap: space.sm, flexWrap: 'wrap' },
-  amount: { fontWeight: '700', color: colors.ink, letterSpacing: -1.2 },
-  currency: { fontWeight: '700', color: colors.muted, letterSpacing: 0 },
+  amount: { fontWeight: '600', color: colors.ink, letterSpacing: -1.2 },
+  currency: { fontWeight: '600', color: colors.muted, letterSpacing: 0 },
   old: { ...type.body, color: colors.muted, textDecorationLine: 'line-through' },
 });

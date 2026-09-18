@@ -1,0 +1,700 @@
+/*
+ * Panoul operatorului: aceeași identitate ca aplicația — paleta din logo, Inter Tight,
+ * contrast AAA pentru text — dar așezată pentru ecranul unui calculator.
+ */
+
+:root {
+  /* Brand, din pixelii logo-ului */
+  --cyan: #0597f2;
+  --navy: #29458a;
+  --magenta: #c4007d;
+
+  /* Text — rapoartele sunt pe alb */
+  --ink: #141a33; /* 17,1:1 */
+  --body: #2b3557; /* 12,0:1 */
+  --muted: #454e71; /* 7,6:1 */
+  --link: #125488; /* 7,9:1 */
+  --magenta-text: #ac006d; /* 7,1:1 */
+
+  /* Suprafețe */
+  --white: #ffffff;
+  --canvas: #edf2fa;
+  --surface: #f3f6fc;
+  --chip: #eaf0fa;
+  --chip-blue: #e4effc;
+  --line: #dde3f0;
+  --pink-surface: #fde7f2;
+  --green: #1f7a4d;
+  --green-surface: #e3f4ea;
+
+  --water: linear-gradient(135deg, var(--navy), var(--cyan));
+  --shadow-low: 0 4px 12px rgba(27, 44, 94, 0.06);
+  --shadow-card: 0 12px 28px rgba(27, 44, 94, 0.09);
+
+  --radius: 18px;
+  --radius-sm: 12px;
+  --touch: 44px;
+
+  font-family: 'Inter Tight', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--body);
+  background: var(--canvas);
+  -webkit-font-smoothing: antialiased;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--canvas);
+}
+
+h1,
+h2,
+h3 {
+  color: var(--ink);
+  margin: 0;
+  font-weight: 600;
+  text-wrap: balance;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 3px solid var(--cyan);
+  outline-offset: 2px;
+}
+
+/* — Așezarea — */
+
+.shell {
+  display: grid;
+  grid-template-columns: 248px 1fr;
+  min-height: 100vh;
+}
+
+.sidebar {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 24px 16px;
+  background: var(--white);
+  border-right: 1px solid var(--line);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 8px;
+}
+
+.brand img {
+  width: 72px;
+  height: auto;
+}
+
+.brand-role {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: var(--touch);
+  padding: 0 12px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--body);
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+}
+
+.nav-item:hover {
+  background: var(--surface);
+}
+
+.nav-item[aria-current='page'] {
+  background: var(--chip-blue);
+  color: var(--navy);
+  font-weight: 600;
+}
+
+.nav-item .count {
+  margin-left: auto;
+  min-width: 24px;
+  padding: 1px 8px;
+  border-radius: 100px;
+  background: var(--magenta);
+  color: var(--white);
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.sidebar-note {
+  margin-top: auto;
+  padding: 12px;
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.sidebar-note button {
+  margin-top: 8px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--link);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.main {
+  padding: 32px 40px 48px;
+  max-width: 1160px;
+  width: 100%;
+}
+
+.page-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+
+.page-header h1 {
+  font-size: 30px;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+.page-header p {
+  margin: 6px 0 0;
+  color: var(--muted);
+  max-width: 62ch;
+}
+
+/* — Suprafețe — */
+
+.card {
+  background: var(--white);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-low);
+}
+
+.card-pad {
+  padding: 24px;
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 20px;
+}
+
+.section-title {
+  font-size: 18px;
+  margin-bottom: 12px;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+/* — Butoane — */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: var(--touch);
+  padding: 0 20px;
+  border: 0;
+  border-radius: 100px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: transform 0.08s ease, opacity 0.15s ease;
+}
+
+.btn:active {
+  transform: scale(0.97);
+}
+
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-primary {
+  background: var(--water);
+  color: var(--white);
+  box-shadow: var(--shadow-card);
+}
+
+.btn-secondary {
+  background: var(--chip);
+  color: var(--navy);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--link);
+  padding: 0 12px;
+}
+
+.btn-danger {
+  background: transparent;
+  color: var(--magenta-text);
+  padding: 0 12px;
+}
+
+.btn-icon {
+  width: var(--touch);
+  padding: 0;
+}
+
+/* — Formulare — */
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.field label,
+.label {
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.input,
+.select,
+.textarea {
+  width: 100%;
+  min-height: var(--touch);
+  padding: 10px 14px;
+  border: 2px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--white);
+  color: var(--ink);
+}
+
+.textarea {
+  min-height: 88px;
+  resize: vertical;
+  line-height: 1.5;
+}
+
+.input:focus,
+.select:focus,
+.textarea:focus {
+  outline: none;
+  border-color: var(--navy);
+}
+
+.hint {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.hint.over {
+  color: var(--magenta-text);
+  font-weight: 600;
+}
+
+/* — Pastile și stări — */
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 38px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 100px;
+  background: var(--white);
+  color: var(--body);
+  font-weight: 500;
+  cursor: pointer;
+  box-shadow: var(--shadow-low);
+}
+
+.chip[aria-pressed='true'] {
+  background: var(--navy);
+  color: var(--white);
+}
+
+.chip .n {
+  font-size: 13px;
+  opacity: 0.8;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: 100px;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.badge-new {
+  background: var(--pink-surface);
+  color: var(--magenta-text);
+}
+.badge-called {
+  background: var(--chip-blue);
+  color: var(--navy);
+}
+.badge-booked {
+  background: var(--green-surface);
+  color: var(--green);
+}
+.badge-cancelled {
+  background: var(--chip);
+  color: var(--muted);
+}
+
+.lang-tag {
+  display: inline-block;
+  padding: 1px 7px;
+  border-radius: 6px;
+  background: var(--chip);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+/* — Tabele — */
+
+.table-wrap {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+
+.table th {
+  padding: 12px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.table td {
+  padding: 14px 16px;
+  border-top: 1px solid var(--line);
+  vertical-align: middle;
+}
+
+.table tr.is-new td {
+  background: #fff8fc;
+}
+
+.strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.phone-link {
+  color: var(--link);
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.phone-link:hover {
+  text-decoration: underline;
+}
+
+.empty {
+  padding: 48px 24px;
+  text-align: center;
+  color: var(--muted);
+}
+
+/* — Locuri: contor cu plus și minus — */
+
+.stepper {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.stepper .value {
+  min-width: 40px;
+  text-align: center;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.seats-bar {
+  width: 120px;
+  height: 8px;
+  border-radius: 100px;
+  background: var(--chip);
+  overflow: hidden;
+}
+
+.seats-bar span {
+  display: block;
+  height: 100%;
+  background: var(--navy);
+  border-radius: 100px;
+}
+
+.seats-bar.low span {
+  background: var(--magenta);
+}
+
+/* — Salvat — */
+
+.saved {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--green);
+  font-weight: 600;
+  font-size: 14px;
+}
+
+/* — Previzualizarea notificării pe telefon — */
+
+.phone {
+  width: 300px;
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 14px;
+  border-radius: 44px;
+  background: #0c1636;
+  box-shadow: var(--shadow-card);
+}
+
+.phone-screen {
+  min-height: 440px;
+  padding: 56px 14px 20px;
+  border-radius: 32px;
+  background: linear-gradient(170deg, #1b3a7a 0%, #0597f2 120%);
+  color: var(--white);
+}
+
+.phone-time {
+  text-align: center;
+  font-size: 54px;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+.phone-date {
+  text-align: center;
+  font-size: 14px;
+  opacity: 0.85;
+  margin: 6px 0 28px;
+}
+
+.push {
+  padding: 12px 14px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--ink);
+}
+
+.push-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.push-head img {
+  width: 20px;
+  height: 20px;
+  border-radius: 5px;
+}
+
+.push-title {
+  margin-top: 6px;
+  font-weight: 600;
+  font-size: 15px;
+  line-height: 1.3;
+}
+
+.push-body {
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--body);
+}
+
+.push-empty {
+  color: var(--muted);
+  font-style: italic;
+}
+
+/* — Alegerea categoriei — */
+
+.audiences {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px;
+}
+
+.audience {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 14px 16px;
+  border: 2px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--white);
+  text-align: left;
+  cursor: pointer;
+}
+
+.audience[aria-pressed='true'] {
+  border-color: var(--navy);
+  background: var(--chip-blue);
+}
+
+.audience strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.audience span {
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.confirm {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 16px;
+  border-radius: var(--radius-sm);
+  background: var(--pink-surface);
+  color: var(--magenta-text);
+  font-weight: 600;
+}
+
+/* — Ecran îngust: meniul trece sus — */
+
+@media (max-width: 900px) {
+  .shell {
+    grid-template-columns: 1fr;
+  }
+  .sidebar {
+    position: static;
+    height: auto;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    padding: 12px 16px;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .nav {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+  .sidebar-note {
+    display: none;
+  }
+  .main {
+    padding: 24px 16px 40px;
+  }
+}
+
+/* — Login — */
+
+.login {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 420px;
+}
+
+.login-logo {
+  width: 110px;
+  height: auto;
+}
+
+/* — Bara de eroare — */
+
+.error-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding: 8px 8px 8px 16px;
+  border-radius: var(--radius-sm);
+  background: var(--pink-surface);
+  color: var(--magenta-text);
+  font-weight: 600;
+}

@@ -16,6 +16,7 @@ import { Text } from '../components/Text';
 import { Icon } from '../components/Icon';
 import { useApp } from '../AppState';
 import { kumania } from '../images';
+import { askNotificationPermission } from '../notifications';
 import type { Lang } from '../i18n';
 import { colors, gradients, radius, shadow, space, TOUCH, type, webInputReset } from '../theme';
 
@@ -165,6 +166,8 @@ export function SignIn() {
       lastName: lastName.trim(),
       phone: `${PREFIX} ${formatPhone(digits)}`,
     });
+    // Omul tocmai și-a lăsat datele ca să primească oferte: acum e momentul firesc să cerem.
+    askNotificationPermission();
     go('home');
   };
 
@@ -189,7 +192,7 @@ export function SignIn() {
             source={kumania[0]}
             style={styles.heroImage}
             resizeMode="cover"
-            accessibilityLabel="Bazinul termal interior de la Hotel Kumánia"
+            accessibilityLabel={`${t.a11yPoolPhoto}, Hotel Kumánia`}
           />
           {/*
             Voalul se închide devreme, de la 65%, exact unde stau titlul și fraza.

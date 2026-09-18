@@ -38,6 +38,17 @@ jobs:
       - name: Exportă varianta web
         run: npx expo export --platform web
 
+      # Panoul operatorului e un proiect separat, cu propriile dependențe.
+      # Se publică lângă aplicație, la /FabricaTurApp/admin/.
+      - name: Construiește panoul operatorului
+        working-directory: admin
+        run: |
+          npm ci
+          npm run build
+
+      - name: Pune panoul lângă aplicație
+        run: cp -r admin/dist dist/admin
+
       # Fără acest fișier, GitHub ar ignora folderul `_expo`, care începe cu
       # underscore, iar pagina s-ar încărca fără cod.
       - name: Dezactivează Jekyll

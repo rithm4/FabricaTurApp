@@ -35,6 +35,7 @@ const community = {
   stethoscope: 'stethoscope',
   utensils: 'silverware-fork-knife',
   'star-filled': 'star',
+  whatsapp: 'whatsapp',
 } as const;
 
 export type IconName = keyof typeof feather | keyof typeof community;

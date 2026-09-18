@@ -1,13 +1,82 @@
 import { ScrollView, StyleSheet, View } from 'react-native';
 
 import { Text } from '../components/Text';
-import { useApp } from '../AppState';
 import { Icon } from '../components/Icon';
 import { BackButton } from '../components/BackButton';
+import { PillButton } from '../components/PillButton';
+import { useApp, type OfferRequest } from '../AppState';
 import { colors, radius, space, type } from '../theme';
 
+function RequestCard({ request }: { request: OfferRequest }) {
+  const { t, lang } = useApp();
+  // Ajunsă la agenție — prin server sau pe WhatsApp — sau doar salvată pe telefon.
+  const sent = request.channel !== 'saved';
+  const label =
+    request.channel === 'sent'
+      ? t.bookStatusSentAgency
+      : request.channel === 'whatsapp'
+        ? t.bookStatusSent
+        : t.bookStatusSaved;
+  const icon = request.channel === 'whatsapp' ? 'whatsapp' : request.channel === 'sent' ? 'send' : 'check';
+  const created = new Date(request.createdAt).toLocaleDateString(lang === 'ro' ? 'ro-RO' : 'ru-RU', {
+    day: 'numeric',
+    month: 'long',
+  });
+
+  return (
+    <View style={styles.card}>
+      <View style={styles.statusRow}>
+        {/* Starea spune exact ce s-a întâmplat: trimisă agenției, sau doar salvată pe telefon. */}
+        <View style={[styles.status, sent ? styles.statusSent : styles.statusSaved]}>
+          <Icon
+            name={icon}
+            size={15}
+            color={sent ? colors.white : colors.navy}
+          />
+          <Text style={[styles.statusText, sent && styles.statusTextSent]}>
+            {label}
+          </Text>
+        </View>
+        <Text style={styles.created}>{created}</Text>
+      </View>
+
+      <Text style={styles.name}>{request.resortName}</Text>
+
+      <View style={styles.facts}>
+        <View style={styles.fact}>
+          <Icon name="calendar" size={18} color={colors.navy} />
+          <Text style={styles.factText}>{request.dates ?? t.waNoDate}</Text>
+        </View>
+        <View style={styles.fact}>
+          <Icon name="users" size={18} color={colors.navy} />
+          <Text style={styles.factText}>{`${request.party} ${t.persons}`}</Text>
+        </View>
+      </View>
+    </View>
+  );
+}
+
+/**
+ * Starea goală. Înainte, ecranul arăta două rezervări inventate oricui — un om abia
+ * înregistrat vedea „Consultantul te sună azi" pentru o cerere pe care n-o trimisese.
+ */
+function Empty() {
+  const { t, go } = useApp();
+
+  return (
+    <View style={styles.empty}>
+      <View style={styles.emptyIcon}>
+        <Icon name="calendar" size={30} color={colors.navy} />
+      </View>
+      <Text style={styles.emptyTitle}>{t.bookEmptyTitle}</Text>
+      <Text style={styles.emptyText}>{t.bookEmptyText}</Text>
+      <PillButton label={t.bookEmptyCta} onPress={() => go('home')} style={styles.emptyCta} />
+    </View>
+  );
+}
+
 export function Bookings() {
-  const { t } = useApp();
+  const { t, requests } = useApp();
 
   return (
     <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
@@ -16,42 +85,26 @@ export function Bookings() {
         <Text style={styles.pageTitle}>{t.bookTitle}</Text>
       </View>
 
-      <View style={styles.list}>
-        <View style={styles.card}>
-          <View style={styles.statusRow}>
-            <View style={styles.statusNew}>
-              <Text style={styles.statusNewText}>{t.bookStatusNew}</Text>
-            </View>
-            <Text style={styles.date}>12 OCT</Text>
-          </View>
-          <Text style={styles.name}>{`Hotel Kumánia · 7 ${t.days}`}</Text>
-          <Text style={styles.meta}>{`${t.bookSent} · 2 ${t.persons}`}</Text>
-          <View style={styles.callRow}>
-            <Icon name="phone" size={20} color={colors.navy} />
-            <Text style={styles.callText}>{t.bookCall}</Text>
-          </View>
+      {requests.length === 0 ? (
+        <Empty />
+      ) : (
+        <View style={styles.list}>
+          {requests.map((request) => (
+            <RequestCard key={request.id} request={request} />
+          ))}
         </View>
-
-        <View style={[styles.card, styles.past]}>
-          <View style={styles.statusDone}>
-            <Text style={styles.statusDoneText}>{t.bookStatusDone}</Text>
-          </View>
-          <Text style={styles.name}>{`Hajdúszoboszló · 10 ${t.days}`}</Text>
-          <Text style={styles.meta}>{t.bookPast}</Text>
-        </View>
-      </View>
+      )}
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  scroll: { paddingHorizontal: space.lg, paddingTop: space.md, paddingBottom: space.section },
+  scroll: { flexGrow: 1, paddingHorizontal: space.lg, paddingTop: space.md, paddingBottom: space.section },
   header: { flexDirection: 'row', alignItems: 'center', gap: space.md },
-  pageTitle: { ...type.title, fontWeight: '600', color: colors.ink, flex: 1 },
+  pageTitle: { ...type.title, color: colors.ink, flex: 1 },
 
   list: { gap: space.lg, marginTop: space.xl },
-  card: { backgroundColor: colors.surface, borderRadius: radius.xl, padding: space.xl },
-  past: { backgroundColor: colors.chip },
+  card: { backgroundColor: colors.white, borderRadius: radius.xl, padding: space.xl },
 
   statusRow: {
     flexDirection: 'row',
@@ -59,34 +112,41 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     gap: space.md,
   },
-  statusNew: {
-    backgroundColor: colors.navy,
-    paddingHorizontal: space.md,
-    paddingVertical: space.sm,
-    borderRadius: radius.sm,
-  },
-  statusNewText: { ...type.micro, color: colors.white },
-  statusDone: {
-    alignSelf: 'flex-start',
-    backgroundColor: colors.white,
-    paddingHorizontal: space.md,
-    paddingVertical: space.sm,
-    borderRadius: radius.sm,
-  },
-  statusDoneText: { ...type.micro, color: colors.muted },
-  date: { ...type.smallStrong, color: colors.muted },
-
-  name: { ...type.title, color: colors.ink, marginTop: space.lg },
-  meta: { ...type.small, color: colors.muted, marginTop: space.xs },
-
-  callRow: {
+  status: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: space.md,
-    marginTop: space.lg,
-    paddingTop: space.lg,
-    borderTopWidth: 1,
-    borderTopColor: colors.dash,
+    gap: 6,
+    paddingHorizontal: space.md,
+    paddingVertical: 6,
+    borderRadius: radius.pill,
   },
-  callText: { ...type.smallStrong, color: colors.body, flex: 1 },
+  statusSent: { backgroundColor: colors.navy },
+  statusSaved: { backgroundColor: colors.chipBlue },
+  statusText: { ...type.micro, color: colors.navy },
+  statusTextSent: { color: colors.white },
+  created: { ...type.small, color: colors.muted },
+
+  name: { ...type.title, color: colors.ink, marginTop: space.lg },
+  facts: { gap: space.sm, marginTop: space.md },
+  fact: { flexDirection: 'row', alignItems: 'center', gap: space.md },
+  factText: { ...type.body, color: colors.body },
+
+  empty: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: space.lg,
+    paddingVertical: space.section,
+  },
+  emptyIcon: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: colors.chipBlue,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emptyTitle: { ...type.title, color: colors.ink, textAlign: 'center', marginTop: space.xl },
+  emptyText: { ...type.body, color: colors.muted, textAlign: 'center', marginTop: space.sm },
+  emptyCta: { marginTop: space.xl },
 });

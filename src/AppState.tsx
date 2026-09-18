@@ -2,7 +2,16 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { BackHandler } from 'react-native';
 
-import { content, type Departure, type Resort, type ResortId } from './data';
+import { type Departure, type NotificationItem, type Resort, type ResortId } from './data';
+import {
+  EMPTY_REMOTE,
+  buildDepartures,
+  buildNotifications,
+  buildResorts,
+  fetchRemote,
+  onRemoteChange,
+  type Remote,
+} from './remote';
 import { strings, type Lang, type Strings } from './i18n';
 
 export type ScreenName =
@@ -24,10 +33,23 @@ export type Account = {
   phone: string;
 };
 
+/** O cerere de ofertă trimisă din aplicație. */
+export type OfferRequest = {
+  id: string;
+  resortName: string;
+  /** Intervalul plecării alese; lipsește dacă omul n-a ales o dată anume. */
+  dates: string | null;
+  party: string;
+  createdAt: number;
+  /** Pe unde a plecat: la agenție prin server, pe WhatsApp, sau doar salvată pe telefon. */
+  channel: 'sent' | 'whatsapp' | 'saved';
+};
+
 type Persisted = {
   account: Account;
   lang: Lang;
   notifOn: boolean[];
+  requests: OfferRequest[];
 };
 
 /** Rădăcinile tab-urilor: a ajunge la una înseamnă a începe un drum nou, deci golește istoricul. */
@@ -58,6 +80,17 @@ type AppState = {
   setDeparture: (departure: Departure | null) => void;
   /** Deschide pagina unei stațiuni anume. */
   openResort: (id: ResortId) => void;
+  /** Alege stațiunea fără să navigheze — pentru plecările alese de pe Acasă. */
+  selectResort: (id: ResortId) => void;
+  /** Hotelurile, cu prețurile de pe server când sunt disponibile. */
+  resorts: Resort[];
+  /** Plecările unui hotel, de pe server când sunt disponibile. */
+  departuresFor: (resortId: ResortId) => Departure[];
+  /** Noutățile trimise din panoul operatorului. */
+  notifications: NotificationItem[];
+  /** Cererile trimise, cea mai nouă prima. */
+  requests: OfferRequest[];
+  addRequest: (request: OfferRequest) => void;
   /** Stațiunea afișată acum pe pagina de detaliu. */
   resort: Resort;
   /** Numele complet, așa cum îl arătăm în salut și în profil. */
@@ -78,6 +111,22 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [account, setAccount] = useState<Account>(EMPTY);
   const [departure, setDeparture] = useState<Departure | null>(null);
   const [resortId, setResortId] = useState<ResortId>('kumania');
+  const [requests, setRequests] = useState<OfferRequest[]>([]);
+  /** Ce a venit de pe server. Până răspunde, și dacă nu răspunde, ecranele folosesc data.ts. */
+  const [remote, setRemote] = useState<Remote>(EMPTY_REMOTE);
+
+  // Datele de pe server se reîncarcă la orice schimbare din panou: o notificare trimisă
+  // apare în „Noutăți" fără ca omul să facă ceva.
+  useEffect(() => {
+    let alive = true;
+    const load = () => fetchRemote().then((data) => alive && setRemote(data));
+    load();
+    const stop = onRemoteChange(load);
+    return () => {
+      alive = false;
+      stop();
+    };
+  }, []);
   /** Ecranele prin care a trecut omul, ca Înapoi să ducă de unde a venit, nu într-un loc fix. */
   const [history, setHistory] = useState<ScreenName[]>([]);
 
@@ -122,6 +171,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         const saved = JSON.parse(raw) as Partial<Persisted>;
         if (saved.lang) setLang(saved.lang);
         if (saved.notifOn) setNotifOn(saved.notifOn);
+        if (saved.requests) setRequests(saved.requests);
         if (saved.account?.phone) {
           setAccount(saved.account);
           setScreen('home');
@@ -142,9 +192,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
   // altfel prima scriere ar suprascrie ce tocmai încercam să restaurăm.
   useEffect(() => {
     if (!restored) return;
-    const payload: Persisted = { account, lang, notifOn };
+    const payload: Persisted = { account, lang, notifOn, requests };
     AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(payload)).catch(() => {});
-  }, [restored, account, lang, notifOn]);
+  }, [restored, account, lang, notifOn, requests]);
+
+  // Hotelurile cu prețurile de pe server, în limba aleasă; data.ts când serverul lipsește.
+  const resorts = useMemo(() => buildResorts(remote, lang, strings[lang]), [remote, lang]);
 
   const value = useMemo<AppState>(
     () => ({
@@ -165,18 +218,25 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setResortId(id);
         go('resort');
       },
-      resort:
-        content.resorts[lang].find((r) => r.id === resortId) ?? content.resorts[lang][0],
+      selectResort: setResortId,
+      requests,
+      addRequest: (request) => setRequests((current) => [request, ...current]),
+      resort: resorts.find((r) => r.id === resortId) ?? resorts[0],
+      resorts,
+      departuresFor: (id) => buildDepartures(remote, lang, id),
+      notifications: buildNotifications(remote, lang, strings[lang]),
       fullName: [account.firstName, account.lastName].filter(Boolean).join(' '),
       signOut: () => {
         AsyncStorage.removeItem(STORAGE_KEY).catch(() => {});
         setAccount(EMPTY);
+        // Cererile țin de cont: la ieșire pleacă odată cu el.
+        setRequests([]);
         setHistory([]);
         setScreen('signin');
       },
     }),
     // `go` și `back` citesc `history` și `screen`, deci se reconstruiesc odată cu ele.
-    [screen, lang, notifOn, account, departure, resortId, history],
+    [screen, lang, notifOn, account, departure, resortId, history, requests, remote],
   );
 
   if (!restored) return null;

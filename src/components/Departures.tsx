@@ -4,18 +4,28 @@ import { Text } from './Text';
 import { Press } from './Press';
 import { Icon } from './Icon';
 import { useApp } from '../AppState';
-import { content, LOW_SEATS, type Departure } from '../data';
+import { LOW_SEATS, type Departure, type ResortId } from '../data';
 import { colors, radius, shadow, space, type } from '../theme';
 
 /**
  * Un rând pe dată de plecare. Apăsarea alege data și duce direct la cerere,
  * ca omul să nu mai fie întrebat ceva ce tocmai a spus.
  */
-function Row({ departure, first }: { departure: Departure; first?: boolean }) {
-  const { t, go, setDeparture } = useApp();
+function Row({
+  departure,
+  resortId,
+  first,
+}: {
+  departure: Departure;
+  resortId: ResortId;
+  first?: boolean;
+}) {
+  const { t, go, setDeparture, selectResort } = useApp();
   const low = departure.seatsLeft <= LOW_SEATS;
 
   const choose = () => {
+    // Se reține și hotelul: cererea trebuie să știe pentru care stațiune e data aleasă.
+    selectResort(resortId);
     setDeparture(departure);
     go('form');
   };
@@ -49,16 +59,23 @@ function Row({ departure, first }: { departure: Departure; first?: boolean }) {
   );
 }
 
-export function Departures() {
-  const { t, lang } = useApp();
-  const list = content.departures[lang];
+/** `resortId` spune pentru ce stațiune sunt plecările — ca cererea să ducă hotelul corect. */
+export function Departures({ resortId }: { resortId: ResortId }) {
+  const { t, departuresFor } = useApp();
+  const list = departuresFor(resortId);
 
   return (
     <View>
       <Text style={styles.title}>{t.departuresTitle}</Text>
-      <View style={styles.card}>
+      {list.length === 0 ? <Text style={styles.none}>{t.departuresNone}</Text> : null}
+      <View style={[styles.card, list.length === 0 && styles.hidden]}>
         {list.map((departure, index) => (
-          <Row key={departure.id} departure={departure} first={index === 0} />
+          <Row
+            key={departure.id}
+            departure={departure}
+            resortId={resortId}
+            first={index === 0}
+          />
         ))}
       </View>
     </View>
@@ -67,6 +84,8 @@ export function Departures() {
 
 const styles = StyleSheet.create({
   title: { ...type.heading, color: colors.ink, marginTop: space.section, marginBottom: space.md },
+  none: { ...type.body, color: colors.muted },
+  hidden: { display: 'none' },
   card: {
     backgroundColor: colors.white,
     borderRadius: radius.xl,

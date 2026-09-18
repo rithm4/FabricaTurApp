@@ -67,5 +67,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   label: { ...type.micro, color: 'rgba(255,255,255,0.9)', fontWeight: '500' },
-  value: { fontSize: 18, lineHeight: 22, fontWeight: '700', color: colors.white, marginLeft: -2 },
+  value: { fontSize: 18, lineHeight: 22, fontWeight: '600', color: colors.white, marginLeft: -2 },
 });

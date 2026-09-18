@@ -6,8 +6,7 @@ import {
   useFonts,
 } from '@expo-google-fonts/inter-tight';
 import { StatusBar } from 'expo-status-bar';
-import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
-import { Text } from './src/components/Text';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 
 import { AppProvider, useApp } from './src/AppState';
@@ -24,35 +23,48 @@ import { RequestForm } from './src/screens/RequestForm';
 import { ResortDetail } from './src/screens/ResortDetail';
 import { Resorts } from './src/screens/Resorts';
 import { SignIn } from './src/screens/SignIn';
-import { colors, radius, space, type } from './src/theme';
+import { colors } from './src/theme';
 
 /** Bara de jos diferă în funcție de ecran: navigație, buton principal sau nimic. */
 function Footer() {
-  const { screen, t, go } = useApp();
+  const { screen, t, go, resort, resorts, departuresFor, selectResort, setDeparture } = useApp();
+
+  // Formularul își are propriul buton: are nevoie de ce s-a completat în el.
+  if (screen === 'form') return null;
 
   if (screen === 'resort') {
     return (
       <CtaBar>
-        <CtaPill icon="plus" kicker={`${t.fromPrice} 542 €`} label={t.askOffer} onPress={() => go('form')} />
+        <CtaPill
+          icon="plus"
+          kicker={`${t.fromPrice} ${resort.price}`}
+          label={t.askOffer}
+          onPress={() => {
+            // O cerere generală pentru hotel: nicio dată rămasă de la o alegere anterioară.
+            setDeparture(null);
+            go('form');
+          }}
+        />
       </CtaBar>
     );
   }
 
   if (screen === 'promo') {
+    // Promoția e oferta săptămânii: prima stațiune, la prima plecare.
+    const featured = resorts[0];
+    const next = departuresFor(featured.id)[0];
     return (
       <CtaBar>
-        <CtaPill icon="plus" kicker={`542 € · 7 ${t.days}`} label={t.askOffer} onPress={() => go('form')} />
-      </CtaBar>
-    );
-  }
-
-  if (screen === 'form') {
-    return (
-      <CtaBar>
-        <CtaPill icon="send" label={t.formSend} onPress={() => go('bookings', { reset: true })} />
-        <Pressable onPress={() => go('bookings', { reset: true })} style={styles.whatsapp} accessibilityRole="button">
-          <Text style={styles.whatsappText}>{t.formWa}</Text>
-        </Pressable>
+        <CtaPill
+          icon="plus"
+          kicker={next ? `${featured.price} · ${next.dates}` : featured.price}
+          label={t.askOffer}
+          onPress={() => {
+            selectResort(featured.id);
+            setDeparture(next ?? null);
+            go('form');
+          }}
+        />
       </CtaBar>
     );
   }
@@ -129,13 +141,4 @@ const styles = StyleSheet.create({
   app: { flex: 1, backgroundColor: colors.canvas },
   loading: { flex: 1, backgroundColor: colors.canvas, alignItems: 'center', justifyContent: 'center' },
   content: { flex: 1 },
-  whatsapp: {
-    minHeight: 56,
-    marginTop: space.md,
-    borderRadius: radius.md,
-    backgroundColor: colors.whatsapp,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  whatsappText: { ...type.bodyStrong, color: colors.whatsappInk },
 });

@@ -5,8 +5,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text } from '../components/Text';
 import { BackButton } from '../components/BackButton';
 import { useApp } from '../AppState';
+import { Price } from '../components/Price';
 import { Icon } from '../components/Icon';
-import { colors, photos, radius, space, type } from '../theme';
+import { colors, radius, space, type } from '../theme';
 
 function Included({ label, first }: { label: string; first?: boolean }) {
   return (
@@ -20,15 +21,19 @@ function Included({ label, first }: { label: string; first?: boolean }) {
 }
 
 export function Promo() {
-  const { t } = useApp();
+  const { t, resorts, departuresFor } = useApp();
   const insets = useSafeAreaInsets();
+  // Aceeași ofertă ca pe Acasă, din aceleași date: cele două ecrane nu se pot contrazice.
+  const featured = resorts[0];
+  const next = departuresFor(featured.id)[0];
 
   return (
     <ScrollView showsVerticalScrollIndicator={false}>
       <ImageBackground
-        source={{ uri: photos.pool }}
+        source={featured.gallery[0]}
         style={styles.hero}
-        accessibilityLabel="Bazin termal interior la Hotel Kumánia"
+        resizeMode="cover"
+        accessibilityLabel={`${t.a11yPoolPhoto}, ${featured.name}`}
       >
         <LinearGradient
           colors={['rgba(13,20,48,.5)', 'rgba(13,20,48,0)', 'rgba(13,20,48,.92)']}
@@ -46,14 +51,15 @@ export function Promo() {
 
         <View style={styles.priceCard}>
           <View style={styles.priceTop}>
-            <Text style={styles.priceMeta}>{`Kumánia · 7 ${t.days}`}</Text>
-            <Text style={styles.priceDate}>12 OCT</Text>
+            <Text style={styles.priceMeta}>{`${featured.name} · ${featured.nights} ${t.nights}`}</Text>
+            {next ? <Text style={styles.priceDate}>{next.dates}</Text> : null}
           </View>
-          <Text style={styles.priceLabel}>{t.perPersonShort}</Text>
-          <View style={styles.priceRow}>
-            <Text style={styles.price}>542 €</Text>
-            <Text style={styles.oldPrice}>610 €</Text>
-          </View>
+          <Price
+            value={featured.price}
+            oldValue={featured.oldPrice}
+            label={t.perPersonShort}
+            size={38}
+          />
         </View>
 
         <View style={styles.includes}>
@@ -72,7 +78,9 @@ export function Promo() {
 }
 
 const styles = StyleSheet.create({
-  hero: { height: 290, backgroundColor: '#000' },
+  // Lățimea e obligatorie: ImageBackground o transmite imaginii, iar fără ea, pe web,
+  // o imagine locală se afișează la mărimea fișierului, tăiată.
+  hero: { width: '100%', height: 290, backgroundColor: '#000' },
   // Doar poziția; aspectul îl dă BackButton.
   back: { position: 'absolute', left: space.lg },
   badge: {
@@ -103,11 +111,7 @@ const styles = StyleSheet.create({
     marginBottom: space.lg,
   },
   priceMeta: { ...type.small, color: colors.muted, flexShrink: 1 },
-  priceDate: { ...type.smallStrong, color: colors.navy },
-  priceLabel: { ...type.micro, color: colors.muted, fontWeight: '500' },
-  priceRow: { flexDirection: 'row', alignItems: 'baseline', gap: space.md, marginTop: space.xs },
-  price: { fontSize: 38, lineHeight: 44, fontWeight: '700', color: colors.ink },
-  oldPrice: { ...type.body, color: colors.muted, textDecorationLine: 'line-through' },
+  priceDate: { ...type.smallStrong, color: colors.navy, textAlign: 'right' },
 
   includes: {
     backgroundColor: colors.surface,

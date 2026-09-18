@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import {
   KeyboardAvoidingView,
+  Linking,
   Platform,
   Pressable,
   ScrollView,
@@ -11,21 +12,80 @@ import {
 
 import { Text } from '../components/Text';
 import { BackButton } from '../components/BackButton';
-import { useApp } from '../AppState';
-import { profile } from '../data';
+import { CtaBar, CtaPill } from '../components/CtaPill';
+import { useApp, type OfferRequest } from '../AppState';
+import { agency, profile } from '../data';
+import { isServerId } from '../remote';
+import { supabase } from '../supabase';
 import { Icon } from '../components/Icon';
 import { colors, radius, space, TOUCH, type, webInputReset } from '../theme';
 
 const PARTY_SIZES = ['1', '2', '3+'];
 
 export function RequestForm() {
-  const { t, back, account, fullName, departure } = useApp();
+  const { t, lang, go, back, account, fullName, departure, resort, addRequest } = useApp();
   const [party, setParty] = useState('2');
   // Precompletat din cont: aceleași date nu se cer de două ori.
   const [name, setName] = useState(fullName);
   const [phone, setPhone] = useState(account.phone || profile.phone);
   // Câmpul activ primește chenar bleumarin — indicatorul nostru de focus, în locul celui de browser.
   const [focused, setFocused] = useState<'name' | 'phone' | null>(null);
+  /** Arătăm ce lipsește abia după o încercare de trimitere, nu în timp ce omul scrie. */
+  const [tried, setTried] = useState(false);
+  /** Cât timp cererea pleacă spre server, butonul nu mai primește apăsări — nu trimitem de două ori. */
+  const [sending, setSending] = useState(false);
+
+  const nameMissing = name.trim().length < 2;
+  const phoneMissing = phone.replace(/\D/g, '').length < 8;
+  // Cu numărul agenției completat, cererea pleacă pe WhatsApp; altfel rămâne doar pe telefon.
+  const viaWhatsApp = agency.whatsapp.length > 0;
+
+  const submit = async () => {
+    if (nameMissing || phoneMissing) {
+      setTried(true);
+      return;
+    }
+    if (sending) return;
+    setSending(true);
+
+    // Cererea pleacă în baza de date și apare pe loc în panoul operatorului.
+    const { error } = await supabase.from('requests').insert({
+      name: name.trim(),
+      phone: phone.trim(),
+      resort_id: resort.id,
+      // Plecările de rezervă din data.ts nu există pe server; atunci cererea pleacă fără dată.
+      departure_id: isServerId(departure?.id) ? departure!.id : null,
+      party,
+      lang,
+    });
+
+    const request: OfferRequest = {
+      id: String(Date.now()),
+      resortName: resort.name,
+      dates: departure?.dates ?? null,
+      party,
+      createdAt: Date.now(),
+      // Starea spune cinstit ce s-a întâmplat: ajunsă la agenție, sau doar salvată pe telefon.
+      channel: !error ? 'sent' : viaWhatsApp ? 'whatsapp' : 'saved',
+    };
+    addRequest(request);
+
+    if (viaWhatsApp) {
+      const text = t.waMessage
+        .replace('{resort}', resort.name)
+        .replace('{dates}', departure?.dates ?? t.waNoDate)
+        .replace('{party}', party)
+        .replace('{name}', name.trim())
+        .replace('{phone}', phone.trim());
+      Linking.openURL(`https://wa.me/${agency.whatsapp}?text=${encodeURIComponent(text)}`).catch(
+        () => {},
+      );
+    }
+
+    setSending(false);
+    // Istoricul se golește: Înapoi din Rezervări nu trebuie să ducă la formularul deja trimis.
+    go('bookings', { reset: true });
+  };
 
   return (
     <KeyboardAvoidingView
@@ -47,14 +107,12 @@ export function RequestForm() {
               <View style={styles.chosenBody}>
                 <Text style={styles.chosenLabel}>{t.departuresChosen}</Text>
                 <Text style={styles.chosenDate}>{departure.dates}</Text>
-                <Text style={styles.chosenMeta}>{`${departure.nights} ${t.nights}`}</Text>
+                <Text style={styles.chosenMeta}>
+                  {`${resort.name} · ${departure.nights} ${t.nights}`}
+                </Text>
               </View>
               {/* Înapoi la lista de unde a fost aleasă data — pe Acasă sau pe pagina stațiunii. */}
-              <Pressable
-                onPress={back}
-                style={styles.chosenChange}
-                accessibilityRole="button"
-              >
+              <Pressable onPress={back} style={styles.chosenChange} accessibilityRole="button">
                 <Text style={styles.chosenChangeText}>{t.departuresChange}</Text>
               </Pressable>
             </View>
@@ -72,7 +130,7 @@ export function RequestForm() {
                     style={[styles.party, active && styles.partyActive]}
                     accessibilityRole="button"
                     accessibilityState={{ selected: active }}
-                    accessibilityLabel={`${size} persoane`}
+                    accessibilityLabel={`${size} ${t.persons}`}
                   >
                     <Text style={[styles.partyText, active && styles.partyTextActive]}>{size}</Text>
                   </Pressable>
@@ -91,9 +149,16 @@ export function RequestForm() {
               placeholderTextColor={colors.muted}
               onFocus={() => setFocused('name')}
               onBlur={() => setFocused(null)}
-              style={[styles.input, focused === 'name' && styles.inputFocused, webInputReset]}
+              style={[
+                styles.input,
+                focused === 'name' && styles.inputFocused,
+                tried && nameMissing && styles.inputError,
+                webInputReset,
+              ]}
               autoComplete="name"
+              autoCapitalize="words"
             />
+            {tried && nameMissing ? <Text style={styles.error}>{t.formNeedName}</Text> : null}
           </View>
 
           <View>
@@ -109,10 +174,12 @@ export function RequestForm() {
                 styles.input,
                 styles.inputStrong,
                 focused === 'phone' && styles.inputFocused,
+                tried && phoneMissing && styles.inputError,
                 webInputReset,
               ]}
               autoComplete="tel"
             />
+            {tried && phoneMissing ? <Text style={styles.error}>{t.signInNeedPhone}</Text> : null}
           </View>
 
           <View style={styles.reassure}>
@@ -121,6 +188,18 @@ export function RequestForm() {
           </View>
         </View>
       </ScrollView>
+
+      {/*
+        Butonul stă în ecran, nu în bara comună de jos: are nevoie de ce s-a completat
+        în formular. Din bara comună nu vedea nimic, așa că cererea nu se salva nicăieri.
+      */}
+      <CtaBar>
+        <CtaPill
+          icon={viaWhatsApp ? 'whatsapp' : 'send'}
+          label={viaWhatsApp ? t.formSendWa : t.formSend}
+          onPress={submit}
+        />
+      </CtaBar>
     </KeyboardAvoidingView>
   );
 }
@@ -163,6 +242,7 @@ const styles = StyleSheet.create({
   chosenChangeText: { ...type.smallStrong, color: colors.link },
   label: {
     ...type.micro,
+    fontWeight: '500',
     color: colors.muted,
     letterSpacing: 1.1,
     textTransform: 'uppercase',
@@ -194,7 +274,9 @@ const styles = StyleSheet.create({
     color: colors.ink,
   },
   inputFocused: { borderColor: colors.navy },
-  inputStrong: { fontWeight: '700' },
+  inputError: { borderColor: colors.magentaText },
+  inputStrong: { fontWeight: '600' },
+  error: { ...type.smallStrong, color: colors.magentaText, marginTop: space.sm },
 
   reassure: { flexDirection: 'row', gap: space.md, alignItems: 'flex-start' },
   fine: { ...type.small, color: colors.muted, flex: 1 },

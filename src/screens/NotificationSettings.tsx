@@ -4,6 +4,7 @@ import { Text } from '../components/Text';
 import { BackButton } from '../components/BackButton';
 import { useApp } from '../AppState';
 import { content } from '../data';
+import { askNotificationPermission } from '../notifications';
 import { colors, radius, space, type } from '../theme';
 
 /**
@@ -62,7 +63,12 @@ export function NotificationSettings() {
             key={label}
             label={label}
             on={notifOn[index]}
-            onPress={() => toggleNotif(index)}
+            onPress={() => {
+              // Pornind o categorie, omul spune clar că vrea notificări: dacă permisiunea
+              // lipsește, acum e momentul s-o cerem.
+              if (!notifOn[index]) askNotificationPermission();
+              toggleNotif(index);
+            }}
             first={index === 0}
           />
         ))}

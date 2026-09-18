@@ -15,7 +15,7 @@ import { colors, gradients, radius, shadow, space, TOUCH, type } from '../theme'
 
 /** Cardul pătrat din rândul „Destinații recomandate”. */
 function DestinationTile({ resort }: { resort: Resort }) {
-  const { openResort } = useApp();
+  const { t, openResort } = useApp();
   const { name, price } = resort;
 
   return (
@@ -24,7 +24,7 @@ function DestinationTile({ resort }: { resort: Resort }) {
       style={styles.tile}
       scaleTo={0.96}
       accessibilityRole="button"
-      accessibilityLabel={`${name}, de la ${price}`}
+      accessibilityLabel={`${name}, ${t.a11yFrom} ${price}`}
     >
       <ImageBackground source={resort.gallery[0]} style={styles.tileImage} resizeMode="cover">
         <LinearGradient
@@ -42,11 +42,12 @@ function DestinationTile({ resort }: { resort: Resort }) {
 }
 
 export function Home() {
-  const { t, go, fullName, lang } = useApp();
+  const { t, go, fullName, resorts, departuresFor } = useApp();
   // Cardul de sus arată întotdeauna prima plecare din listă, ca cele două să nu se contrazică.
-  const next = content.departures[lang][0];
   /** Oferta săptămânii e a primei destinații din listă. */
-  const featured = content.resorts[lang][0];
+  const featured = resorts[0];
+  // Poate lipsi: cu date reale, un hotel poate să nu aibă nicio plecare programată.
+  const next = departuresFor(featured.id)[0];
 
   return (
     <View style={styles.root}>
@@ -80,7 +81,7 @@ export function Home() {
             <PhotoCarousel
               photos={featured.gallery}
               style={styles.carousel}
-              accessibilityLabel={`Fotografii de la ${featured.name}`}
+              accessibilityLabel={`${t.a11yPhotosOf} ${featured.name}`}
             />
             <LinearGradient
               colors={['rgba(9,20,52,0.35)', 'rgba(9,20,52,0)']}
@@ -100,20 +101,23 @@ export function Home() {
             <Text style={styles.cardTitle}>{`${featured.name}, ${featured.city}`}</Text>
             <Text style={styles.cardMeta}>{t.heroMeta}</Text>
 
-            <View style={styles.facts}>
-              <View style={styles.fact}>
-                <Icon name="calendar" size={18} color={colors.navy} />
-                <Text style={styles.factText}>{next.dates}</Text>
+            {/* Fără nicio plecare programată, rândurile cu data și locurile nu au ce arăta. */}
+            {next ? (
+              <View style={styles.facts}>
+                <View style={styles.fact}>
+                  <Icon name="calendar" size={18} color={colors.navy} />
+                  <Text style={styles.factText}>{next.dates}</Text>
+                </View>
+                <View style={styles.fact}>
+                  <Icon name="clock" size={18} color={colors.magentaText} />
+                  <Text style={styles.factSeats}>
+                    {next.seatsLeft <= LOW_SEATS
+                      ? `${t.departuresLast} · ${next.seatsLeft}`
+                      : `${next.seatsLeft} ${t.departuresSeats}`}
+                  </Text>
+                </View>
               </View>
-              <View style={styles.fact}>
-                <Icon name="clock" size={18} color={colors.magentaText} />
-                <Text style={styles.factSeats}>
-                  {next.seatsLeft <= LOW_SEATS
-                    ? `${t.departuresLast} · ${next.seatsLeft}`
-                    : `${next.seatsLeft} ${t.departuresSeats}`}
-                </Text>
-              </View>
-            </View>
+            ) : null}
 
             <View style={styles.cardFooter}>
               <Price
@@ -125,13 +129,13 @@ export function Home() {
               <PillButton
                 label={t.seeOffer}
                 onPress={() => go('promo')}
-                accessibilityLabel={`${t.seeOffer}, ${featured.name}, ${next.dates}, ${featured.price}`}
+                accessibilityLabel={`${t.seeOffer}, ${featured.name}, ${next?.dates ?? ''}, ${featured.price}`}
               />
             </View>
           </View>
         </Press>
 
-        <Departures />
+        <Departures resortId={featured.id} />
 
         <View style={styles.sectionRow}>
           <Text style={styles.sectionTitle}>{t.homeResorts}</Text>
@@ -142,7 +146,7 @@ export function Home() {
         </View>
 
         <View style={styles.tiles}>
-          {content.resorts[lang].map((resort) => (
+          {resorts.map((resort) => (
             <DestinationTile key={resort.id} resort={resort} />
           ))}
         </View>

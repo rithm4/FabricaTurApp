@@ -2,16 +2,22 @@ import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { Text } from '../components/Text';
 
 import { useApp } from '../AppState';
-import { content, type NotificationItem } from '../data';
+import type { NotificationItem } from '../data';
 import { Icon } from '../components/Icon';
 import { colors, radius, space, TOUCH, type } from '../theme';
 
 function NotificationRow({ item }: { item: NotificationItem }) {
-  const { go } = useApp();
+  const { go, openResort } = useApp();
+
+  // Fiecare notificare duce unde spune că duce, nu toate la aceeași promoție.
+  const open = () => {
+    if (item.target === 'promo' || item.target === 'bookings') go(item.target);
+    else openResort(item.target);
+  };
 
   return (
     <Pressable
-      onPress={() => go('promo')}
+      onPress={open}
       style={[styles.card, item.accent && styles.cardAccent]}
       accessibilityRole="button"
       accessibilityLabel={`${item.title}. ${item.text} ${item.when}`}
@@ -29,7 +35,7 @@ function NotificationRow({ item }: { item: NotificationItem }) {
 }
 
 export function Notifications() {
-  const { t, lang, go } = useApp();
+  const { t, go, notifications } = useApp();
 
   return (
     <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
@@ -45,8 +51,9 @@ export function Notifications() {
       </View>
 
       <View style={styles.list}>
-        {content.notifications[lang].map((item) => (
-          <NotificationRow key={item.title} item={item} />
+        {notifications.length === 0 ? <Text style={styles.empty}>{t.notifEmpty}</Text> : null}
+        {notifications.map((item) => (
+          <NotificationRow key={item.id ?? item.title} item={item} />
         ))}
       </View>
     </ScrollView>
@@ -66,6 +73,7 @@ const styles = StyleSheet.create({
   link: { ...type.smallStrong, color: colors.link },
 
   list: { gap: space.md, marginTop: space.xl },
+  empty: { ...type.body, color: colors.muted, textAlign: 'center', paddingVertical: space.section },
   card: {
     flexDirection: 'row',
     gap: space.md,
