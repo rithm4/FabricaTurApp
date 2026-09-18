@@ -27,7 +27,7 @@ import { colors } from './src/theme';
 
 /** Bara de jos diferă în funcție de ecran: navigație, buton principal sau nimic. */
 function Footer() {
-  const { screen, t, go, resort, resorts, departuresFor, selectResort, setDeparture } = useApp();
+  const { screen, t, go, resort, resorts, nextDeparture, selectResort, setDeparture } = useApp();
 
   // Formularul își are propriul buton: are nevoie de ce s-a completat în el.
   if (screen === 'form') return null;
@@ -52,7 +52,7 @@ function Footer() {
   if (screen === 'promo') {
     // Promoția e oferta săptămânii: prima stațiune, la prima plecare.
     const featured = resorts[0];
-    const next = departuresFor(featured.id)[0];
+    const next = nextDeparture(featured.id);
     return (
       <CtaBar>
         <CtaPill

@@ -20,6 +20,7 @@ type ResortRow = {
   rating: string;
   water_temp: string;
   nights: number;
+  offer_until?: string | null;
 };
 
 type DepartureRow = {
@@ -82,6 +83,13 @@ export function onRemoteChange(callback: () => void) {
 
 const locale = (lang: Lang) => (lang === 'ro' ? 'ro-RO' : 'ru-RU');
 
+/** Ziua de azi, AAAA-LL-ZZ, după ceasul telefonului — nu după UTC. */
+function localToday() {
+  const now = new Date();
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+}
+
 /** „12 – 19 octombrie" sau „26 octombrie – 2 noiembrie"; în rusă, „12 – 19 октября". */
 function formatRange(start: string, nights: number, lang: Lang) {
   const from = new Date(`${start}T12:00:00`);
@@ -123,6 +131,14 @@ export function buildResorts(remote: Remote, lang: Lang, t: Strings): Resort[] {
       waterTemp: row.water_temp || resort.waterTemp,
       nights: row.nights,
       discount: discount ? { label: t.discountLabel, value: `${discount} €` } : undefined,
+      // Termenul se arată doar cât e încă în viitor; după el, rândul dispare singur.
+      offerUntil:
+        row.offer_until && row.offer_until >= localToday()
+          ? new Date(`${row.offer_until}T12:00:00`).toLocaleDateString(locale(lang), {
+              day: 'numeric',
+              month: 'long',
+            })
+          : undefined,
     };
   });
 }
@@ -131,7 +147,7 @@ export function buildDepartures(remote: Remote, lang: Lang, resortId: string): D
   if (!remote.departures) return content.departures[lang];
 
   // Plecările trecute nu mai au ce căuta în listă.
-  const today = new Date().toISOString().slice(0, 10);
+  const today = localToday();
   return remote.departures
     .filter((d) => d.resort_id === resortId && d.start_date >= today)
     .map((d) => ({

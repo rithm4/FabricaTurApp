@@ -148,7 +148,8 @@ export function buildTemplate(
 
   if (audience === 'promo') {
     const discount = discountOf(resort);
-    const first = next[0];
+    // Anunțăm o plecare la care chiar se mai poate merge, nu una plină.
+    const first = next.find((d) => d.seatsLeft > 0);
     const when: Localized = first
       ? {
           ro: ` Plecare ${formatRange(first.start, first.nights, 'ro')}.`,
@@ -177,8 +178,11 @@ export function buildTemplate(
   }
 
   if (audience === 'lastSeats') {
-    // Plecarea cu cele mai puține locuri rămase; la egalitate, cea mai apropiată.
-    const low = next.filter((d) => d.seatsLeft > 0).sort((a, b) => a.seatsLeft - b.seatsLeft)[0];
+    // Doar o plecare care chiar e aproape plină — „Ultimele 22 de locuri" ar fi o minciună.
+    // Dintre ele, cea cu cele mai puține locuri; la egalitate, cea mai apropiată.
+    const low = next
+      .filter((d) => d.seatsLeft > 0 && d.seatsLeft <= LOW_SEATS)
+      .sort((a, b) => a.seatsLeft - b.seatsLeft)[0];
     if (!low) return null;
     const seats = seatsText(low.seatsLeft);
     return {

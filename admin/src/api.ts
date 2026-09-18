@@ -38,6 +38,7 @@ type ResortRow = {
   rating: string;
   water_temp: string;
   nights: number;
+  offer_until?: string | null;
 };
 
 const toResort = (r: ResortRow): Resort => ({
@@ -49,6 +50,7 @@ const toResort = (r: ResortRow): Resort => ({
   rating: r.rating,
   waterTemp: r.water_temp,
   nights: r.nights,
+  offerUntil: r.offer_until ?? null,
 });
 
 type DepartureRow = {
@@ -141,6 +143,7 @@ export const api = {
             ...(patch.rating !== undefined && { rating: patch.rating }),
             ...(patch.waterTemp !== undefined && { water_temp: patch.waterTemp }),
             ...(patch.nights !== undefined && { nights: patch.nights }),
+            ...(patch.offerUntil !== undefined && { offer_until: patch.offerUntil }),
             updated_at: new Date().toISOString(),
           })
           .eq('id', resortId),

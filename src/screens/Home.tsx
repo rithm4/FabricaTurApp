@@ -42,12 +42,12 @@ function DestinationTile({ resort }: { resort: Resort }) {
 }
 
 export function Home() {
-  const { t, go, fullName, resorts, departuresFor, unreadCount } = useApp();
+  const { t, go, fullName, resorts, nextDeparture, unreadCount } = useApp();
   // Cardul de sus arată întotdeauna prima plecare din listă, ca cele două să nu se contrazică.
   /** Oferta săptămânii e a primei destinații din listă. */
   const featured = resorts[0];
   // Poate lipsi: cu date reale, un hotel poate să nu aibă nicio plecare programată.
-  const next = departuresFor(featured.id)[0];
+  const next = nextDeparture(featured.id);
 
   return (
     <View style={styles.root}>

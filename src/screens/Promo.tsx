@@ -21,11 +21,11 @@ function Included({ label, first }: { label: string; first?: boolean }) {
 }
 
 export function Promo() {
-  const { t, resorts, departuresFor } = useApp();
+  const { t, resorts, nextDeparture } = useApp();
   const insets = useSafeAreaInsets();
   // Aceeași ofertă ca pe Acasă, din aceleași date: cele două ecrane nu se pot contrazice.
   const featured = resorts[0];
-  const next = departuresFor(featured.id)[0];
+  const next = nextDeparture(featured.id);
 
   return (
     <ScrollView showsVerticalScrollIndicator={false}>
@@ -47,7 +47,11 @@ export function Promo() {
       </ImageBackground>
 
       <View style={styles.content}>
-        <Text style={styles.title}>{t.promoTitle}</Text>
+        <Text style={styles.title}>
+          {t.promoTitle
+            .replace('{name}', featured.name.replace(/^Hotel /, ''))
+            .replace('{n}', String(featured.nights))}
+        </Text>
 
         <View style={styles.priceCard}>
           <View style={styles.priceTop}>
@@ -68,10 +72,13 @@ export function Promo() {
           <Included label={t.promoI3} />
         </View>
 
-        <View style={styles.limit}>
-          <Icon name="clock" size={22} color={colors.magentaText} />
-          <Text style={styles.limitText}>{t.promoLimit}</Text>
-        </View>
+        {/* Termenul vine din panou; fără el, sau după el, rândul nu apare — nu promitem o dată falsă. */}
+        {featured.offerUntil ? (
+          <View style={styles.limit}>
+            <Icon name="clock" size={22} color={colors.magentaText} />
+            <Text style={styles.limitText}>{t.promoLimit.replace('{date}', featured.offerUntil)}</Text>
+          </View>
+        ) : null}
       </View>
     </ScrollView>
   );

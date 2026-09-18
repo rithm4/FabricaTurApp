@@ -161,5 +161,6 @@ where not exists (select 1 from public.departures);
 
 
 -- ── După acest fișier ────────────────────────────────────────────────────────
--- Rulează și 003-stari-si-locuri.sql: starea cererilor pentru client și locurile
--- care scad singure la rezervare. (002-notite.sql e deja inclus mai sus.)
+-- Rulează apoi, în ordine: 003-stari-si-locuri.sql, 006-stare-in-timp-real.sql și
+-- 007-verificari-cerere.sql, 008-oferta-valabila.sql. (002 e deja inclus mai sus;
+-- 004 și 005 sunt cuprinse în 007.)

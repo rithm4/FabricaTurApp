@@ -58,7 +58,7 @@ export function Notifications() {
       <View style={styles.header}>
         <Text style={styles.pageTitle}>{t.notifTitle}</Text>
         <Pressable
-          onPress={() => go('profile')}
+          onPress={() => go('notifSettings')}
           style={styles.settingsButton}
           accessibilityRole="button"
         >

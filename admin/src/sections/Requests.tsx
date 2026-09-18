@@ -79,9 +79,12 @@ function RequestCard({
     const persons = request.party === '3+' ? 3 : Number(request.party);
     const exact = request.party === '3+' ? ' (3+ contează ca 3 — ajustează în Plecări)' : '';
     if (status === 'booked') {
-      return departure
-        ? ` · locuri la ${departureLabel(departure)}: −${persons}${exact}`
-        : ' · fără dată aleasă, locurile nu s-au schimbat';
+      if (!departure) return ' · fără dată aleasă, locurile nu s-au schimbat';
+      // Serverul nu coboară sub zero: dacă nu erau destule locuri, operatorul trebuie să afle.
+      if (departure.seatsLeft < persons) {
+        return ` · ATENȚIE: la ${departureLabel(departure)} erau doar ${departure.seatsLeft} locuri libere`;
+      }
+      return ` · locuri la ${departureLabel(departure)}: −${persons}${exact}`;
     }
     if (request.status === 'booked' && departure) return ` · ${persons} locuri eliberate`;
     return '';
@@ -89,9 +92,14 @@ function RequestCard({
 
   const setStatus = async (status: RequestStatus) => {
     if (status === request.status) return;
+    // Nota se calculează înainte de salvare, din locurile de dinainte de rezervare.
+    const note = seatsNote(status);
     await api.requests.setStatus(request.id, status);
     await refresh();
-    toast(`${request.name} — ${statusLabel[status].toLowerCase()}${seatsNote(status)}`);
+    toast(
+      `${request.name} — ${statusLabel[status].toLowerCase()}${note}`,
+      note.includes('ATENȚIE') ? 'error' : 'ok',
+    );
   };
 
   const remove = async () => {

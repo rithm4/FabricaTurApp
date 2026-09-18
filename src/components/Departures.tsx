@@ -21,7 +21,8 @@ function Row({
   first?: boolean;
 }) {
   const { t, go, setDeparture, selectResort } = useApp();
-  const low = departure.seatsLeft <= LOW_SEATS;
+  const full = departure.seatsLeft <= 0;
+  const low = !full && departure.seatsLeft <= LOW_SEATS;
 
   const choose = () => {
     // Se reține și hotelul: cererea trebuie să știe pentru care stațiune e data aleasă.
@@ -33,16 +34,25 @@ function Row({
   return (
     <Press
       onPress={choose}
+      // O plecare plină rămâne în listă, ca omul să știe că a existat, dar nu se mai poate alege.
+      disabled={full}
       scaleTo={0.985}
-      style={[styles.row, !first && styles.rowDivider]}
+      style={[styles.row, !first && styles.rowDivider, full && styles.rowFull]}
       accessibilityRole="button"
-      accessibilityLabel={`${departure.dates}, ${departure.nights} ${t.nights}, ${departure.seatsLeft} ${t.departuresSeats}`}
+      accessibilityState={{ disabled: full }}
+      accessibilityLabel={
+        full
+          ? `${departure.dates}, ${t.departuresFull}`
+          : `${departure.dates}, ${departure.nights} ${t.nights}, ${departure.seatsLeft} ${t.departuresSeats}`
+      }
     >
       <View style={styles.left}>
         <Text style={styles.dates}>{departure.dates}</Text>
         <Text style={styles.nights}>{`${departure.nights} ${t.nights}`}</Text>
 
-        {low ? (
+        {full ? (
+          <Text style={styles.seats}>{t.departuresFull}</Text>
+        ) : low ? (
           <View style={styles.lowChip}>
             <Icon name="clock" size={14} color={colors.magentaText} />
             <Text style={styles.lowText}>
@@ -54,7 +64,7 @@ function Row({
         )}
       </View>
 
-      <Icon name="arrow-right" size={22} color={colors.navy} />
+      {full ? null : <Icon name="arrow-right" size={22} color={colors.navy} />}
     </Press>
   );
 }
@@ -102,6 +112,7 @@ const styles = StyleSheet.create({
     minHeight: 92,
   },
   rowDivider: { borderTopWidth: 1, borderTopColor: colors.line },
+  rowFull: { backgroundColor: colors.surface },
 
   left: { flex: 1, minWidth: 0, gap: 2 },
   dates: { ...type.bodyStrong, color: colors.ink },

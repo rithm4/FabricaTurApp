@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Megaphone, Star, Thermometer } from 'lucide-react';
 
 import { api } from '../api';
-import { discountOf, euro } from '../format';
+import { discountOf, euro, todayIso } from '../format';
 import type { Compose, Section, SectionProps } from '../nav';
 import type { Resort } from '../types';
 import { Loading, PageHeader, useToast } from '../ui';
@@ -62,6 +62,7 @@ function ResortEditor({
   const priceValid = Number.isInteger(draft.price) && draft.price > 0;
   const nightsValid = Number.isInteger(draft.nights) && draft.nights > 0;
   const oldPriceLow = draft.oldPrice !== null && draft.oldPrice <= draft.price;
+  const untilPast = draft.offerUntil !== null && draft.offerUntil < todayIso();
   const discount = discountOf(draft);
   const savedDiscount = discountOf(resort);
 
@@ -175,6 +176,33 @@ function ResortEditor({
             onChange={(e) => set('waterTemp', e.target.value)}
           />
         </div>
+      </div>
+
+      <div className="field">
+        <label htmlFor={`${resort.id}-until`}>Oferta e valabilă până la (opțional)</label>
+        <div className="until-row">
+          <input
+            id={`${resort.id}-until`}
+            className="input"
+            type="date"
+            min={todayIso()}
+            value={draft.offerUntil ?? ''}
+            onChange={(e) => set('offerUntil', e.target.value || null)}
+            aria-invalid={untilPast}
+          />
+          {draft.offerUntil ? (
+            <button type="button" className="btn btn-sm btn-ghost" onClick={() => set('offerUntil', null)}>
+              Fără termen
+            </button>
+          ) : null}
+        </div>
+        <p className={untilPast ? 'field-note over' : 'field-note'}>
+          {untilPast
+            ? 'Data a trecut: aplicația nu mai arată termenul. Alege o dată nouă sau „Fără termen".'
+            : draft.offerUntil
+              ? `Pe pagina ofertei apare: „Oferta este valabilă până la ${new Date(`${draft.offerUntil}T12:00:00`).toLocaleDateString('ro-RO', { day: 'numeric', month: 'long' })}." După această zi, rândul dispare singur.`
+              : 'Fără termen: pe pagina ofertei nu apare nicio dată limită.'}
+        </p>
       </div>
 
       <div className="form-actions">

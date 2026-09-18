@@ -95,6 +95,8 @@ type AppState = {
   resorts: Resort[];
   /** Plecările unui hotel, de pe server când sunt disponibile. */
   departuresFor: (resortId: ResortId) => Departure[];
+  /** Prima plecare care mai are locuri — cea pe care o recomandăm. Una plină nu se oferă. */
+  nextDeparture: (resortId: ResortId) => Departure | undefined;
   /** Noutățile trimise din panoul operatorului, doar din categoriile pornite în setări. */
   notifications: NotificationItem[];
   /** Câte noutăți n-a văzut încă omul. */
@@ -120,11 +122,22 @@ const AppContext = createContext<AppState | null>(null);
 
 const EMPTY: Account = { firstName: '', lastName: '', phone: '' };
 const STORAGE_KEY = 'fabricatur.account.v1';
+/** Ultimele date primite de pe server, pentru pornirea fără internet. */
+const REMOTE_KEY = 'fabricatur.remote.v1';
+
+/** Peste `base` pune doar listele care au venit; cele lipsă rămân cum erau. */
+function mergeRemote(base: Remote, update: Remote): Remote {
+  return {
+    resorts: update.resorts ?? base.resorts,
+    departures: update.departures ?? base.departures,
+    notifications: update.notifications ?? base.notifications,
+  };
+}
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const [screen, setScreen] = useState<ScreenName>('signin');
   const [lang, setLang] = useState<Lang>('ro');
-  const [notifOn, setNotifOn] = useState([true, true, true, false]);
+  const [notifOn, setNotifOn] = useState([true, true, true, true]);
   const [account, setAccount] = useState<Account>(EMPTY);
   const [departure, setDeparture] = useState<Departure | null>(null);
   const [resortId, setResortId] = useState<ResortId>('kumania');
@@ -137,12 +150,38 @@ export function AppProvider({ children }: { children: ReactNode }) {
   // apare în „Noutăți" fără ca omul să facă ceva.
   useEffect(() => {
     let alive = true;
-    const load = () => fetchRemote().then((data) => alive && setRemote(data));
+
+    // Ultimele date primite rămân pe telefon: fără internet, omul vede prețurile de ieri,
+    // nu pe cele de rezervă din cod.
+    AsyncStorage.getItem(REMOTE_KEY)
+      .then((raw) => {
+        if (alive && raw) setRemote((current) => mergeRemote(JSON.parse(raw) as Remote, current));
+      })
+      .catch(() => {});
+
+    const load = () =>
+      fetchRemote().then((data) => {
+        if (!alive) return;
+        // O listă care n-a venit (internet căzut o clipă) nu șterge ce aveam deja.
+        setRemote((current) => {
+          const next = mergeRemote(current, data);
+          AsyncStorage.setItem(REMOTE_KEY, JSON.stringify(next)).catch(() => {});
+          return next;
+        });
+      });
     load();
     const stop = onRemoteChange(load);
+
+    // Pe telefon, legătura directă se poate rupe cât aplicația stă în fundal: la revenire
+    // reîncărcăm, ca prețurile și noutățile să fie la zi.
+    const sub = SystemAppState.addEventListener('change', (state) => {
+      if (state === 'active') load();
+    });
+
     return () => {
       alive = false;
       stop();
+      sub.remove();
     };
   }, []);
   /** Ecranele prin care a trecut omul, ca Înapoi să ducă de unde a venit, nu într-un loc fix. */
@@ -291,6 +330,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       resort: resorts.find((r) => r.id === resortId) ?? resorts[0],
       resorts,
       departuresFor: (id) => buildDepartures(remote, lang, id),
+      nextDeparture: (id) => buildDepartures(remote, lang, id).find((d) => d.seatsLeft > 0),
       notifications,
       unreadCount,
       notifSeenAt,
@@ -306,6 +346,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setAccount(EMPTY);
         // Cererile țin de cont: la ieșire pleacă odată cu el.
         setRequests([]);
+        setNotifSeenAt('');
         setHistory([]);
         setScreen('signin');
       },

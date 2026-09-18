@@ -24,6 +24,8 @@ export type Resort = {
   rating: string;
   waterTemp: string;
   nights: number;
+  /** Ultima zi a ofertei, AAAA-LL-ZZ. După ea, aplicația nu mai afișează termenul. */
+  offerUntil: string | null;
 };
 
 export type Departure = {

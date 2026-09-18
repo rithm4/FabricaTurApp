@@ -27,6 +27,8 @@ export type Resort = {
   nights: number;
   /** Lipsește când stațiunea nu are reducere activă. */
   discount?: Discount;
+  /** „30 septembrie” — ultima zi a ofertei; lipsește când nu are termen sau a trecut. */
+  offerUntil?: string;
   tags: string[];
   /** Fotografiile stațiunii. Prima e și cea folosită pe cardurile mici. */
   gallery: ImageSourcePropType[];
