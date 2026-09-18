@@ -10,7 +10,7 @@ import { PillButton } from '../components/PillButton';
 import { PhotoCarousel } from '../components/PhotoCarousel';
 import { useApp } from '../AppState';
 import { nightsLabel } from '../i18n';
-import { content, LOW_SEATS, profile, type Resort } from '../data';
+import { LOW_SEATS, type Resort } from '../data';
 import { Icon } from '../components/Icon';
 import { colors, gradients, radius, shadow, space, TOUCH, type } from '../theme';
 
@@ -62,7 +62,7 @@ export function Home() {
           </View>
           <View style={styles.greeting}>
             <Text style={styles.hello}>{t.hello}</Text>
-            <Text style={styles.name}>{fullName || profile.name}</Text>
+            <Text style={styles.name}>{fullName}</Text>
           </View>
           <Press
             onPress={() => go('notif')}
@@ -103,7 +103,7 @@ export function Home() {
 
           <View style={styles.cardBody}>
             <Text style={styles.cardTitle}>{`${featured.name}, ${featured.city}`}</Text>
-            <Text style={styles.cardMeta}>{t.heroMeta.replace('{nights}', nightsLabel(featured.nights, lang))}</Text>
+            <Text style={styles.cardMeta}>{[nightsLabel(featured.nights, lang), featured.short].filter(Boolean).join(' · ')}</Text>
 
             {/* Fără nicio plecare programată, rândurile cu data și locurile nu au ce arăta. */}
             {next ? (

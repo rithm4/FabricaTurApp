@@ -32,6 +32,16 @@ export type Resort = {
   tags: string[];
   /** Fotografiile stațiunii. Prima e și cea folosită pe cardurile mici. */
   gallery: ImageSourcePropType[];
+  /** Oferta săptămânii — o singură stațiune, aleasă din panou. */
+  featured: boolean;
+  /** Ce e inclus, pe scurt: „Transport și mic dejun". */
+  short: string;
+  /** Eticheta de pe fotografia ofertei („Ofertă limitată"); goală = nu apare. */
+  badge: string;
+  /** Lista „Ce include" de pe pagina ofertei. */
+  includes: string[];
+  /** Avantajele de pe pagina hotelului. */
+  features: string[];
 };
 
 /** Unde duce apăsarea pe o notificare: la promoție, la un hotel anume sau la rezervări. */
@@ -68,6 +78,11 @@ const resorts: Record<Lang, Resort[]> = {
       nights: 7,
       discount: { label: 'Reducere', value: '68 €' },
       tags: ['Acces direct', 'Proceduri'],
+      featured: true,
+      short: 'Transport și mic dejun',
+      badge: 'Ofertă limitată',
+      includes: ['Transport tur-retur din Chișinău', 'Cazare cu mic dejun', 'Acces la băile termale și wellness'],
+      features: ['Acces direct din hotel la băi', 'Bazine interioare și exterioare', 'Proceduri și fizioterapie', 'Mic dejun și cină incluse'],
       gallery: kumania,
     },
     {
@@ -79,6 +94,11 @@ const resorts: Record<Lang, Resort[]> = {
       waterTemp: '38–40 °C',
       nights: 7,
       tags: ['Cel mai mare complex', 'Wellness'],
+      featured: false,
+      short: 'Transport și mic dejun',
+      badge: '',
+      includes: ['Transport tur-retur din Chișinău', 'Cazare cu mic dejun', 'Acces la băile termale și wellness'],
+      features: ['Unul dintre cele mai mari complexe termale din Europa', 'Bazine interioare și exterioare', 'Zonă wellness', 'Mic dejun inclus'],
       gallery: [{ uri: photos.walk }],
     },
   ],
@@ -94,6 +114,11 @@ const resorts: Record<Lang, Resort[]> = {
       nights: 7,
       discount: { label: 'Скидка', value: '68 €' },
       tags: ['Прямой переход', 'Процедуры'],
+      featured: true,
+      short: 'Транспорт и завтрак',
+      badge: 'Ограниченное предложение',
+      includes: ['Транспорт туда-обратно из Кишинёва', 'Проживание с завтраком', 'Доступ к термальным баням и wellness'],
+      features: ['Прямой переход из отеля в бани', 'Внутренние и наружные бассейны', 'Процедуры и физиотерапия', 'Завтрак и ужин включены'],
       gallery: kumania,
     },
     {
@@ -105,6 +130,11 @@ const resorts: Record<Lang, Resort[]> = {
       waterTemp: '38–40 °C',
       nights: 7,
       tags: ['Крупнейший комплекс', 'Wellness'],
+      featured: false,
+      short: 'Транспорт и завтрак',
+      badge: '',
+      includes: ['Транспорт туда-обратно из Кишинёва', 'Проживание с завтраком', 'Доступ к термальным баням и wellness'],
+      features: ['Один из крупнейших термальных комплексов Европы', 'Внутренние и наружные бассейны', 'Зона wellness', 'Завтрак включён'],
       gallery: [{ uri: photos.walk }],
     },
   ],
@@ -129,44 +159,7 @@ export type Departure = {
   seatsLeft: number;
 };
 
-/**
- * PROVIZORIU — date și prețuri de lucru, nu cele reale ale agenției.
- * Se înlocuiesc aici, într-un singur loc.
- */
-const departures: Record<Lang, Departure[]> = {
-  ro: [
-    { id: 'oct-12', dates: '12 – 19 octombrie', date: '12 octombrie', nights: 7, seatsLeft: 4 },
-    { id: 'oct-26', dates: '26 octombrie – 2 noiembrie', date: '26 octombrie', nights: 7, seatsLeft: 11 },
-    { id: 'nov-09', dates: '9 – 16 noiembrie', date: '9 noiembrie', nights: 7, seatsLeft: 16 },
-    { id: 'nov-23', dates: '23 noiembrie – 3 decembrie', date: '23 noiembrie', nights: 10, seatsLeft: 20 },
-    { id: 'dec-07', dates: '7 – 14 decembrie', date: '7 decembrie', nights: 7, seatsLeft: 22 },
-  ],
-  ru: [
-    { id: 'oct-12', dates: '12 – 19 октября', date: '12 октября', nights: 7, seatsLeft: 4 },
-    { id: 'oct-26', dates: '26 октября – 2 ноября', date: '26 октября', nights: 7, seatsLeft: 11 },
-    { id: 'nov-09', dates: '9 – 16 ноября', date: '9 ноября', nights: 7, seatsLeft: 16 },
-    { id: 'nov-23', dates: '23 ноября – 3 декабря', date: '23 ноября', nights: 10, seatsLeft: 20 },
-    { id: 'dec-07', dates: '7 – 14 декабря', date: '7 декабря', nights: 7, seatsLeft: 22 },
-  ],
-};
-
 /** Sub acest prag, numărul de locuri devine un semnal, nu o informație. */
 export const LOW_SEATS = 6;
 
-export const content = { resorts, notificationSettings, departures };
-
-/**
- * Datele agenției.
- *
- * GOL până îl confirmă agenția. Cu numărul gol, cererile se salvează doar pe telefon și
- * NU ajung la agenție; cu el completat, butonul devine Trimite pe WhatsApp.
- */
-export const agency = {
-  /** Doar cifre, cu prefixul țării. Exemplu: 37369123456 */
-  whatsapp: '',
-};
-
-export const profile = {
-  name: 'Ion Popescu',
-  phone: '+373 60 181 999',
-} as const;
+export const content = { resorts, notificationSettings };

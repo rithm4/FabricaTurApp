@@ -26,6 +26,27 @@ export type Resort = {
   nights: number;
   /** Ultima zi a ofertei, AAAA-LL-ZZ. După ea, aplicația nu mai afișează termenul. */
   offerUntil: string | null;
+  /** Oferta săptămânii: o singură stațiune, arătată prima în aplicație. */
+  featured: boolean;
+  /** Ce e inclus, pe scurt („Transport și mic dejun"). */
+  short: Localized;
+  /** Eticheta de pe fotografia ofertei; goală = nu apare. */
+  badge: Localized;
+  /** Lista „Ce include" de pe pagina ofertei. */
+  includes: Record<Lang, string[]>;
+  /** Avantajele de pe pagina hotelului. */
+  features: Record<Lang, string[]>;
+  /** Etichetele scurte din lista de destinații. */
+  tags: Record<Lang, string[]>;
+  /** Adresele fotografiilor încărcate; prima e coperta. Gol = cele din aplicație. */
+  photos: string[];
+};
+
+/** Datele agenției, un singur rând. */
+export type Settings = {
+  /** Doar cifre, cu prefixul țării: 37369123456. Gol = cererile nu pleacă pe WhatsApp. */
+  whatsapp: string;
+  tagline: Localized;
 };
 
 export type Departure = {

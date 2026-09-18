@@ -7,6 +7,7 @@ import type {
   Resort,
   ResortId,
   SentNotification,
+  Settings,
 } from './types';
 
 /**
@@ -39,7 +40,21 @@ type ResortRow = {
   water_temp: string;
   nights: number;
   offer_until?: string | null;
+  featured?: boolean;
+  short_ro?: string;
+  short_ru?: string;
+  badge_ro?: string;
+  badge_ru?: string;
+  includes_ro?: string[];
+  includes_ru?: string[];
+  features_ro?: string[];
+  features_ru?: string[];
+  tags_ro?: string[];
+  tags_ru?: string[];
+  photos?: string[];
 };
+
+type SettingsRow = { whatsapp: string; tagline_ro: string; tagline_ru: string };
 
 const toResort = (r: ResortRow): Resort => ({
   id: r.id,
@@ -51,7 +66,36 @@ const toResort = (r: ResortRow): Resort => ({
   waterTemp: r.water_temp,
   nights: r.nights,
   offerUntil: r.offer_until ?? null,
+  featured: r.featured ?? false,
+  short: { ro: r.short_ro ?? '', ru: r.short_ru ?? '' },
+  badge: { ro: r.badge_ro ?? '', ru: r.badge_ru ?? '' },
+  includes: { ro: r.includes_ro ?? [], ru: r.includes_ru ?? [] },
+  features: { ro: r.features_ro ?? [], ru: r.features_ru ?? [] },
+  tags: { ro: r.tags_ro ?? [], ru: r.tags_ru ?? [] },
+  photos: r.photos ?? [],
 });
+
+/** Rândurile goale dintr-o listă nu au ce căuta în aplicație. */
+const clean = (list: string[]) => list.map((s) => s.trim()).filter(Boolean);
+
+/** Fotografia micșorată în browser: telefoanele fac poze de 5 MB, aplicația are nevoie de ~300 KB. */
+async function shrink(file: File, max = 1600): Promise<Blob> {
+  const bitmap = await createImageBitmap(file);
+  const scale = Math.min(1, max / Math.max(bitmap.width, bitmap.height));
+  const canvas = document.createElement('canvas');
+  canvas.width = Math.round(bitmap.width * scale);
+  canvas.height = Math.round(bitmap.height * scale);
+  canvas.getContext('2d')!.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+  return new Promise((resolve, reject) =>
+    canvas.toBlob(
+      (blob) => (blob ? resolve(blob) : reject(new Error('Fotografia nu a putut fi citită.'))),
+      'image/jpeg',
+      0.82,
+    ),
+  );
+}
+
+const BUCKET = 'photos';
 
 type DepartureRow = {
   id: string;
@@ -144,9 +188,77 @@ export const api = {
             ...(patch.waterTemp !== undefined && { water_temp: patch.waterTemp }),
             ...(patch.nights !== undefined && { nights: patch.nights }),
             ...(patch.offerUntil !== undefined && { offer_until: patch.offerUntil }),
+            ...(patch.short !== undefined && {
+              short_ro: patch.short.ro.trim(),
+              short_ru: patch.short.ru.trim(),
+            }),
+            ...(patch.badge !== undefined && {
+              badge_ro: patch.badge.ro.trim(),
+              badge_ru: patch.badge.ru.trim(),
+            }),
+            ...(patch.includes !== undefined && {
+              includes_ro: clean(patch.includes.ro),
+              includes_ru: clean(patch.includes.ru),
+            }),
+            ...(patch.features !== undefined && {
+              features_ro: clean(patch.features.ro),
+              features_ru: clean(patch.features.ru),
+            }),
+            ...(patch.tags !== undefined && {
+              tags_ro: clean(patch.tags.ro),
+              tags_ru: clean(patch.tags.ru),
+            }),
+            ...(patch.photos !== undefined && { photos: patch.photos }),
             updated_at: new Date().toISOString(),
           })
           .eq('id', resortId),
+      );
+    },
+    /**
+     * Face din hotelul dat oferta săptămânii. Întâi le scoate pe celelalte: serverul
+     * nu acceptă două oferte ale săptămânii în același timp.
+     */
+    async setFeatured(resortId: ResortId): Promise<void> {
+      check(await supabase.from('resorts').update({ featured: false }).neq('id', resortId));
+      check(await supabase.from('resorts').update({ featured: true }).eq('id', resortId));
+    },
+    /** Încarcă o fotografie micșorată și întoarce adresa ei publică. */
+    async uploadPhoto(resortId: ResortId, file: File): Promise<string> {
+      const blob = await shrink(file);
+      const path = `${resortId}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.jpg`;
+      const { error } = await supabase.storage.from(BUCKET).upload(path, blob, {
+        contentType: 'image/jpeg',
+        cacheControl: '31536000',
+      });
+      if (error) throw new Error(error.message);
+      return supabase.storage.from(BUCKET).getPublicUrl(path).data.publicUrl;
+    },
+    /** Șterge fișierul unei fotografii încărcate din panou. */
+    async removePhoto(url: string): Promise<void> {
+      const marker = `/object/public/${BUCKET}/`;
+      const at = url.indexOf(marker);
+      if (at < 0) return;
+      const { error } = await supabase.storage.from(BUCKET).remove([url.slice(at + marker.length)]);
+      if (error) throw new Error(error.message);
+    },
+  },
+
+  settings: {
+    async get(): Promise<Settings> {
+      const row = rows<SettingsRow>(await supabase.from('settings').select('*').limit(1))[0];
+      return {
+        whatsapp: row?.whatsapp ?? '',
+        tagline: { ro: row?.tagline_ro ?? '', ru: row?.tagline_ru ?? '' },
+      };
+    },
+    async update(settings: Settings): Promise<void> {
+      check(
+        await supabase.from('settings').upsert({
+          id: 1,
+          whatsapp: settings.whatsapp.replace(/\D/g, ''),
+          tagline_ro: settings.tagline.ro.trim(),
+          tagline_ru: settings.tagline.ru.trim(),
+        }),
       );
     },
   },

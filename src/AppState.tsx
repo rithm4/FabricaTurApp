@@ -8,6 +8,7 @@ import {
   buildDepartures,
   buildNotifications,
   buildResorts,
+  buildSettings,
   fetchRemote,
   fetchRequestStatuses,
   onRemoteChange,
@@ -99,6 +100,8 @@ type AppState = {
   nextDeparture: (resortId: ResortId) => Departure | undefined;
   /** Noutățile trimise din panoul operatorului, doar din categoriile pornite în setări. */
   notifications: NotificationItem[];
+  /** Datele agenției scrise în panou: WhatsApp și sloganul de la înregistrare. */
+  agency: { whatsapp: string; tagline: string };
   /** Câte noutăți n-a văzut încă omul. */
   unreadCount: number;
   /** Momentul până la care noutățile sunt văzute. */
@@ -131,6 +134,7 @@ function mergeRemote(base: Remote, update: Remote): Remote {
     resorts: update.resorts ?? base.resorts,
     departures: update.departures ?? base.departures,
     notifications: update.notifications ?? base.notifications,
+    settings: update.settings ?? base.settings,
   };
 }
 
@@ -332,6 +336,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       departuresFor: (id) => buildDepartures(remote, lang, id),
       nextDeparture: (id) => buildDepartures(remote, lang, id).find((d) => d.seatsLeft > 0),
       notifications,
+      agency: buildSettings(remote, lang, strings[lang]),
       unreadCount,
       notifSeenAt,
       markNotifsSeen: () => {

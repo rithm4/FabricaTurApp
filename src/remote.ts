@@ -13,6 +13,7 @@ import type { Lang, Strings } from './i18n';
 
 type ResortRow = {
   id: string;
+  name?: string;
   city_ro: string;
   city_ru: string;
   price: number;
@@ -21,6 +22,25 @@ type ResortRow = {
   water_temp: string;
   nights: number;
   offer_until?: string | null;
+  // Conținutul scris din panou (009). Opționale: înainte de script lipsesc.
+  featured?: boolean;
+  short_ro?: string;
+  short_ru?: string;
+  badge_ro?: string;
+  badge_ru?: string;
+  includes_ro?: string[];
+  includes_ru?: string[];
+  features_ro?: string[];
+  features_ru?: string[];
+  tags_ro?: string[];
+  tags_ru?: string[];
+  photos?: string[];
+};
+
+type SettingsRow = {
+  whatsapp: string;
+  tagline_ro: string;
+  tagline_ru: string;
 };
 
 type DepartureRow = {
@@ -46,9 +66,15 @@ export type Remote = {
   resorts: ResortRow[] | null;
   departures: DepartureRow[] | null;
   notifications: NotificationRow[] | null;
+  settings: SettingsRow | null;
 };
 
-export const EMPTY_REMOTE: Remote = { resorts: null, departures: null, notifications: null };
+export const EMPTY_REMOTE: Remote = {
+  resorts: null,
+  departures: null,
+  notifications: null,
+  settings: null,
+};
 
 async function list<T>(table: string, order: string, ascending: boolean): Promise<T[] | null> {
   const { data, error } = await supabase.from(table).select('*').order(order, { ascending });
@@ -56,12 +82,13 @@ async function list<T>(table: string, order: string, ascending: boolean): Promis
 }
 
 export async function fetchRemote(): Promise<Remote> {
-  const [resorts, departures, notifications] = await Promise.all([
+  const [resorts, departures, notifications, settings] = await Promise.all([
     list<ResortRow>('resorts', 'id', true),
     list<DepartureRow>('departures', 'start_date', true),
     list<NotificationRow>('notifications', 'sent_at', false),
+    list<SettingsRow>('settings', 'id', true),
   ]);
-  return { resorts, departures, notifications };
+  return { resorts, departures, notifications, settings: settings?.[0] ?? null };
 }
 
 /**
@@ -70,7 +97,7 @@ export async function fetchRemote(): Promise<Remote> {
  */
 export function onRemoteChange(callback: () => void) {
   const channel = supabase.channel('aplicatie');
-  for (const table of ['resorts', 'departures', 'notifications']) {
+  for (const table of ['resorts', 'departures', 'notifications', 'settings']) {
     channel.on('postgres_changes', { event: '*', schema: 'public', table }, callback);
   }
   channel.subscribe();
@@ -113,11 +140,20 @@ function relative(iso: string, t: Strings) {
   return fill(t.relDays, Math.round(hours / 24));
 }
 
+/** Oferta săptămânii prima: ecranele o iau de pe primul loc. */
+const featuredFirst = (list: Resort[]) =>
+  [...list].sort((a, b) => Number(b.featured) - Number(a.featured));
+
 export function buildResorts(remote: Remote, lang: Lang, t: Strings): Resort[] {
   const local = content.resorts[lang];
-  if (!remote.resorts) return local;
+  if (!remote.resorts) return featuredFirst(local);
 
-  return local.map((resort) => {
+  // Un text gol din panou înseamnă „nu afișa"; o coloană lipsă (script nerulat) înseamnă
+  // „păstrează ce e în aplicație".
+  const pick = <T,>(ro: T | undefined, ru: T | undefined, fallback: T) =>
+    (lang === 'ro' ? ro : ru) ?? fallback;
+
+  return featuredFirst(local.map((resort) => {
     const row = remote.resorts?.find((r) => r.id === resort.id);
     if (!row) return resort;
     // Reducerea se calculează din prețuri, exact ca în panou — nu poate contrazice prețul.
@@ -131,6 +167,15 @@ export function buildResorts(remote: Remote, lang: Lang, t: Strings): Resort[] {
       waterTemp: row.water_temp || resort.waterTemp,
       nights: row.nights,
       discount: discount ? { label: t.discountLabel, value: `${discount} €` } : undefined,
+      name: row.name || resort.name,
+      featured: row.featured ?? resort.featured,
+      short: pick(row.short_ro, row.short_ru, resort.short),
+      badge: pick(row.badge_ro, row.badge_ru, resort.badge),
+      includes: pick(row.includes_ro, row.includes_ru, resort.includes),
+      features: pick(row.features_ro, row.features_ru, resort.features),
+      tags: pick(row.tags_ro, row.tags_ru, resort.tags),
+      // Fotografiile încărcate din panou; până atunci, cele din aplicație.
+      gallery: row.photos?.length ? row.photos.map((uri) => ({ uri })) : resort.gallery,
       // Termenul se arată doar cât e încă în viitor; după el, rândul dispare singur.
       offerUntil:
         row.offer_until && row.offer_until >= localToday()
@@ -140,11 +185,12 @@ export function buildResorts(remote: Remote, lang: Lang, t: Strings): Resort[] {
             })
           : undefined,
     };
-  });
+  }));
 }
 
 export function buildDepartures(remote: Remote, lang: Lang, resortId: string): Departure[] {
-  if (!remote.departures) return content.departures[lang];
+  // Fără server nu inventăm date de plecare: lista goală spune adevărul.
+  if (!remote.departures) return [];
 
   // Plecările trecute nu mai au ce căuta în listă.
   const today = localToday();
@@ -170,6 +216,15 @@ const ICON: Record<NotificationRow['audience'], IconName> = {
 };
 
 const TARGETS: NotificationTarget[] = ['promo', 'kumania', 'hungarospa', 'bookings'];
+
+/** Datele agenției din panou (Setări): numărul de WhatsApp și sloganul. */
+export function buildSettings(remote: Remote, lang: Lang, t: Strings) {
+  const s = remote.settings;
+  return {
+    whatsapp: s?.whatsapp ?? '',
+    tagline: (lang === 'ro' ? s?.tagline_ro : s?.tagline_ru) || t.signInTagline,
+  };
+}
 
 export function buildNotifications(remote: Remote, lang: Lang, t: Strings): NotificationItem[] {
   // Fără server nu arătăm nimic inventat: lista goală spune adevărul.

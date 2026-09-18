@@ -50,21 +50,26 @@ export function useLive<T>(load: () => Promise<T>, tables: string[], initial: T)
 
 /** Toate datele de care au nevoie secțiunile, într-o singură încărcare. */
 export async function loadAll() {
-  const [resortList, departures, requests, notifications] = await Promise.all([
+  const [resortList, departures, requests, notifications, settings] = await Promise.all([
     api.resorts.list(),
     api.departures.list(),
     api.requests.list(),
     api.notifications.list(),
+    api.settings.get(),
   ]);
-  // Aceeași ordine ca în aplicație: Kumánia, oferta principală, prima.
-  const resorts = [...resortList].sort(
-    (a, b) => Number(b.id === 'kumania') - Number(a.id === 'kumania'),
-  );
-  return { resorts, departures, requests, notifications };
+  // Aceeași ordine ca în aplicație: oferta săptămânii prima.
+  const resorts = [...resortList].sort((a, b) => Number(b.featured) - Number(a.featured));
+  return { resorts, departures, requests, notifications, settings };
 }
 
 export type AllData = Awaited<ReturnType<typeof loadAll>>;
 
-export const EMPTY_DATA: AllData = { resorts: [], departures: [], requests: [], notifications: [] };
+export const EMPTY_DATA: AllData = {
+  resorts: [],
+  departures: [],
+  requests: [],
+  notifications: [],
+  settings: { whatsapp: '', tagline: { ro: '', ru: '' } },
+};
 
-export const ALL_TABLES = ['resorts', 'departures', 'requests', 'notifications'];
+export const ALL_TABLES = ['resorts', 'departures', 'requests', 'notifications', 'settings'];

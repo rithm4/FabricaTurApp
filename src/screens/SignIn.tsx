@@ -137,7 +137,7 @@ function LangSwitch() {
 }
 
 export function SignIn() {
-  const { t, go, setAccount } = useApp();
+  const { t, go, setAccount, agency } = useApp();
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [phone, setPhone] = useState('');
@@ -219,7 +219,7 @@ export function SignIn() {
 
           <View style={styles.heroText}>
             <Text style={styles.title}>{t.signInTitle}</Text>
-            <Text style={styles.tagline}>{t.signInTagline}</Text>
+            <Text style={styles.tagline}>{agency.tagline}</Text>
           </View>
         </View>
 

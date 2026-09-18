@@ -6,6 +6,7 @@ import {
   LayoutDashboard,
   LogOut,
   RefreshCw,
+  Settings as SettingsIcon,
   Tag,
   WifiOff,
   type LucideProps,
@@ -19,6 +20,7 @@ import { Departures } from './sections/Departures';
 import { Notifications } from './sections/Notifications';
 import { Offers } from './sections/Offers';
 import { Requests } from './sections/Requests';
+import { Settings } from './sections/Settings';
 import { Today } from './sections/Today';
 import { ToastProvider } from './ui';
 
@@ -30,6 +32,7 @@ const NAV: { id: Section; label: string; icon: ComponentType<LucideProps> }[] = 
   { id: 'notificari', label: 'Notificări', icon: Bell },
   { id: 'oferte', label: 'Oferte', icon: Tag },
   { id: 'plecari', label: 'Plecări', icon: CalendarDays },
+  { id: 'setari', label: 'Setări', icon: SettingsIcon },
 ];
 
 /** Secțiunea stă în adresă (#cereri), ca la reîncărcare operatorul să rămână unde era. */
@@ -170,6 +173,7 @@ function Panel({ email }: { email: string | null }) {
             {section === 'notificari' && <Notifications {...props} compose={compose} />}
             {section === 'oferte' && <Offers {...props} />}
             {section === 'plecari' && <Departures {...props} />}
+            {section === 'setari' && <Settings {...props} />}
           </>
         )}
       </main>

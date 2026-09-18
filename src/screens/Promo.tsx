@@ -42,9 +42,11 @@ export function Promo() {
           style={StyleSheet.absoluteFill}
         />
         <BackButton onDark style={[styles.back, { top: insets.top + space.lg }]} />
-        <View style={styles.badge}>
-          <Text style={styles.badgeText}>{t.promoBadge}</Text>
-        </View>
+        {featured.badge ? (
+          <View style={styles.badge}>
+            <Text style={styles.badgeText}>{featured.badge}</Text>
+          </View>
+        ) : null}
       </ImageBackground>
 
       <View style={styles.content}>
@@ -53,6 +55,7 @@ export function Promo() {
             .replace('{name}', featured.name.replace(/^Hotel /, ''))
             .replace('{nights}', nightsLabel(featured.nights, lang))}
         </Text>
+        {featured.short ? <Text style={styles.short}>{featured.short}</Text> : null}
 
         <View style={styles.priceCard}>
           <View style={styles.priceTop}>
@@ -67,15 +70,14 @@ export function Promo() {
           />
         </View>
 
-        <View style={styles.includes}>
-          <Included label={t.promoI1} first />
-          <Included
-            label={t.promoI2
-              .replace('{nights}', nightsLabel(featured.nights, lang))
-              .replace('{name}', featured.name)}
-          />
-          <Included label={t.promoI3} />
-        </View>
+        {/* „Ce include" se scrie în panou; o listă goală nu lasă un card gol. */}
+        {featured.includes.length > 0 ? (
+          <View style={styles.includes}>
+            {featured.includes.map((line, index) => (
+              <Included key={line + index} label={line} first={index === 0} />
+            ))}
+          </View>
+        ) : null}
 
         {/* Termenul vine din panou; fără el, sau după el, rândul nu apare — nu promitem o dată falsă. */}
         {featured.offerUntil ? (
@@ -108,6 +110,7 @@ const styles = StyleSheet.create({
 
   content: { paddingHorizontal: space.lg, paddingTop: space.lg, paddingBottom: space.section },
   title: { ...type.display, color: colors.ink, letterSpacing: -0.6 },
+  short: { ...type.body, color: colors.muted, marginTop: space.xs },
 
   priceCard: {
     backgroundColor: colors.surface,

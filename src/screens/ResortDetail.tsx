@@ -90,12 +90,13 @@ export function ResortDetail() {
 
         <Departures resortId={resort.id} />
 
-        <View style={styles.features}>
-          <Feature icon="door-open" label={t.resortF1} first />
-          <Feature icon="waves" label={t.resortF2} />
-          <Feature icon="stethoscope" label={t.resortF3} />
-          <Feature icon="utensils" label={t.resortF4} />
-        </View>
+        {resort.features.length > 0 ? (
+          <View style={styles.features}>
+            {resort.features.map((line, index) => (
+              <Feature key={line + index} icon="check" label={line} first={index === 0} />
+            ))}
+          </View>
+        ) : null}
 
         <View style={styles.sectionRow}>
           <Text style={styles.sectionTitle}>{t.gallery}</Text>

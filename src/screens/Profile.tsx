@@ -4,7 +4,6 @@ import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { Text } from '../components/Text';
 import { Icon, type IconName } from '../components/Icon';
 import { useApp } from '../AppState';
-import { profile } from '../data';
 import type { Lang } from '../i18n';
 import { colors, gradients, radius, shadow, space, TOUCH, type } from '../theme';
 
@@ -83,7 +82,7 @@ function LangSwitch() {
 export function Profile() {
   const { t, go, notifOn, account, fullName, signOut } = useApp();
 
-  const name = fullName || profile.name;
+  const name = fullName;
   const on = notifOn.filter(Boolean).length;
   // Rezumatul spune ce primești, nu îndeamnă la oprit.
   const notifDetail =
@@ -106,7 +105,7 @@ export function Profile() {
         </LinearGradient>
         <View style={styles.identityText}>
           <Text style={styles.name}>{name}</Text>
-          <Text style={styles.phone}>{account.phone || profile.phone}</Text>
+          <Text style={styles.phone}>{account.phone}</Text>
         </View>
       </View>
 

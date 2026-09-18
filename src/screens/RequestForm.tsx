@@ -15,7 +15,6 @@ import { BackButton } from '../components/BackButton';
 import { CtaBar, CtaPill } from '../components/CtaPill';
 import { useApp, type OfferRequest } from '../AppState';
 import { nightsLabel } from '../i18n';
-import { agency, profile } from '../data';
 import { isServerId, submitRequest } from '../remote';
 import { Icon } from '../components/Icon';
 import { colors, radius, space, TOUCH, type, webInputReset } from '../theme';
@@ -23,11 +22,11 @@ import { colors, radius, space, TOUCH, type, webInputReset } from '../theme';
 const PARTY_SIZES = ['1', '2', '3+'];
 
 export function RequestForm() {
-  const { t, lang, go, back, account, fullName, departure, resort, addRequest } = useApp();
+  const { t, lang, go, back, account, fullName, departure, resort, addRequest, agency } = useApp();
   const [party, setParty] = useState('2');
   // Precompletat din cont: aceleași date nu se cer de două ori.
   const [name, setName] = useState(fullName);
-  const [phone, setPhone] = useState(account.phone || profile.phone);
+  const [phone, setPhone] = useState(account.phone);
   // Câmpul activ primește chenar bleumarin — indicatorul nostru de focus, în locul celui de browser.
   const [focused, setFocused] = useState<'name' | 'phone' | null>(null);
   /** Arătăm ce lipsește abia după o încercare de trimitere, nu în timp ce omul scrie. */
