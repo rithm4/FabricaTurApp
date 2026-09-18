@@ -1,3 +1,5 @@
+import { Platform, type TextStyle } from 'react-native';
+
 /**
  * Sistemul vizual al aplicației.
  *
@@ -153,3 +155,12 @@ export const photos = {
   walk: 'https://static.tildacdn.com/tild6661-6137-4938-b333-623261306665/8a19c449-f9d1-4a18-9.png',
   logo: 'https://static.tildacdn.com/tild6133-6363-4666-b536-336331643036/logo1.png',
 } as const;
+
+/**
+ * Scoate conturul de focus pe care browserul îl pune peste câmpurile de text.
+ *
+ * Doar pe web, unde sub `TextInput` stă un `<input>` obișnuit. Nu rămânem fără indicator
+ * de focus: câmpurile noastre își schimbă chenarul în bleumarin când sunt active, ceea ce
+ * acoperă cerința WCAG 2.4.7. Fără asta, cele două contururi ar apărea unul peste altul.
+ */
+export const webInputReset = (Platform.OS === 'web' ? { outlineStyle: 'none' } : {}) as TextStyle;

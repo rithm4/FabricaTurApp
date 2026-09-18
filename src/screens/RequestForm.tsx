@@ -13,7 +13,7 @@ import { Text } from '../components/Text';
 import { useApp } from '../AppState';
 import { profile } from '../data';
 import { Icon } from '../components/Icon';
-import { colors, radius, space, TOUCH, type } from '../theme';
+import { colors, radius, space, TOUCH, type, webInputReset } from '../theme';
 
 const PARTY_SIZES = ['1', '2', '3+'];
 
@@ -23,6 +23,8 @@ export function RequestForm() {
   // Precompletat din cont: aceleași date nu se cer de două ori.
   const [name, setName] = useState(fullName);
   const [phone, setPhone] = useState(account.phone || profile.phone);
+  // Câmpul activ primește chenar bleumarin — indicatorul nostru de focus, în locul celui de browser.
+  const [focused, setFocused] = useState<'name' | 'phone' | null>(null);
 
   return (
     <KeyboardAvoidingView
@@ -92,7 +94,9 @@ export function RequestForm() {
               onChangeText={setName}
               placeholder={t.formNameEx}
               placeholderTextColor={colors.muted}
-              style={styles.input}
+              onFocus={() => setFocused('name')}
+              onBlur={() => setFocused(null)}
+              style={[styles.input, focused === 'name' && styles.inputFocused, webInputReset]}
               autoComplete="name"
             />
           </View>
@@ -104,7 +108,14 @@ export function RequestForm() {
               value={phone}
               onChangeText={setPhone}
               keyboardType="phone-pad"
-              style={[styles.input, styles.inputStrong]}
+              onFocus={() => setFocused('phone')}
+              onBlur={() => setFocused(null)}
+              style={[
+                styles.input,
+                styles.inputStrong,
+                focused === 'phone' && styles.inputFocused,
+                webInputReset,
+              ]}
               autoComplete="tel"
             />
           </View>
@@ -187,13 +198,15 @@ const styles = StyleSheet.create({
   input: {
     backgroundColor: colors.surface,
     borderRadius: radius.md,
-    borderWidth: 1,
+    // Grosimea rămâne 2 și la focus; se schimbă doar culoarea, ca textul să nu sară cu un pixel.
+    borderWidth: 2,
     borderColor: colors.line,
     paddingHorizontal: space.lg,
     minHeight: 60,
     fontSize: 17,
     color: colors.ink,
   },
+  inputFocused: { borderColor: colors.navy },
   inputStrong: { fontWeight: '700' },
 
   reassure: { flexDirection: 'row', gap: space.md, alignItems: 'flex-start' },

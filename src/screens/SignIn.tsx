@@ -15,7 +15,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text } from '../components/Text';
 import { useApp } from '../AppState';
 import { Icon } from '../components/Icon';
-import { colors, gradients, photos, radius, shadow, space, type } from '../theme';
+import { colors, gradients, photos, radius, shadow, space, type, webInputReset } from '../theme';
 
 const PREFIX = '+373';
 
@@ -60,7 +60,7 @@ function Field({
           placeholderTextColor={colors.muted}
           autoComplete={autoComplete}
           keyboardType={autoComplete === 'tel' ? 'phone-pad' : 'default'}
-          style={styles.input}
+          style={[styles.input, webInputReset]}
         />
       </View>
     </View>

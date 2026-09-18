@@ -56,7 +56,7 @@ function LangButton({ lang, label }: { lang: Lang; label: string }) {
 }
 
 export function Profile() {
-  const { t, lang, notifOn, toggleNotif, account, fullName } = useApp();
+  const { t, lang, notifOn, toggleNotif, account, fullName, signOut } = useApp();
 
   return (
     <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
@@ -90,6 +90,11 @@ export function Profile() {
         <LangButton lang="ro" label="Română" />
         <LangButton lang="ru" label="Русский" />
       </View>
+
+      <Pressable onPress={signOut} style={styles.signOut} accessibilityRole="button">
+        <Icon name="arrow-left" size={20} color={colors.magentaText} />
+        <Text style={styles.signOutText}>{t.profSignOut}</Text>
+      </Pressable>
     </ScrollView>
   );
 }
@@ -170,4 +175,18 @@ const styles = StyleSheet.create({
   langButtonActive: { backgroundColor: colors.navy },
   langText: { ...type.bodyStrong, color: colors.body },
   langTextActive: { color: colors.white },
+
+  // Acțiune distructivă: fără fundal plin, ca să nu concureze cu butoanele obișnuite.
+  signOut: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: space.sm,
+    minHeight: 56,
+    marginTop: space.section,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.line,
+  },
+  signOutText: { ...type.bodyStrong, color: colors.magentaText },
 });
