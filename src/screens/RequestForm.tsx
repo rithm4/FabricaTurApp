@@ -14,6 +14,7 @@ import { Text } from '../components/Text';
 import { BackButton } from '../components/BackButton';
 import { CtaBar, CtaPill } from '../components/CtaPill';
 import { useApp, type OfferRequest } from '../AppState';
+import { nightsLabel } from '../i18n';
 import { agency, profile } from '../data';
 import { isServerId, submitRequest } from '../remote';
 import { Icon } from '../components/Icon';
@@ -111,7 +112,7 @@ export function RequestForm() {
                 <Text style={styles.chosenLabel}>{t.departuresChosen}</Text>
                 <Text style={styles.chosenDate}>{departure.dates}</Text>
                 <Text style={styles.chosenMeta}>
-                  {`${resort.name} · ${departure.nights} ${t.nights}`}
+                  {`${resort.name} · ${nightsLabel(departure.nights, lang)}`}
                 </Text>
               </View>
               {/* Înapoi la lista de unde a fost aleasă data — pe Acasă sau pe pagina stațiunii. */}

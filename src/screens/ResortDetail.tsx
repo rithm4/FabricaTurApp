@@ -7,6 +7,7 @@ import { BackButton } from '../components/BackButton';
 import { Departures } from '../components/Departures';
 import { PhotoCarousel } from '../components/PhotoCarousel';
 import { useApp } from '../AppState';
+import { nightsLabel } from '../i18n';
 import { Icon, type IconName } from '../components/Icon';
 import { colors, radius, space, TOUCH, type } from '../theme';
 
@@ -40,7 +41,7 @@ function Feature({ icon, label, first }: { icon: IconName; label: string; first?
 }
 
 export function ResortDetail() {
-  const { t, go, resort } = useApp();
+  const { t, lang, go, resort } = useApp();
   const insets = useSafeAreaInsets();
 
   return (
@@ -82,7 +83,7 @@ export function ResortDetail() {
           <Stat
             icon="moon"
             color={colors.navy}
-            value={`${resort.nights} ${t.nights}`}
+            value={nightsLabel(resort.nights, lang)}
             label={t.stay}
           />
         </View>

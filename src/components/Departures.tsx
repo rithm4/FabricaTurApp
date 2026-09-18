@@ -4,6 +4,7 @@ import { Text } from './Text';
 import { Press } from './Press';
 import { Icon } from './Icon';
 import { useApp } from '../AppState';
+import { nightsLabel } from '../i18n';
 import { LOW_SEATS, type Departure, type ResortId } from '../data';
 import { colors, radius, shadow, space, type } from '../theme';
 
@@ -20,7 +21,7 @@ function Row({
   resortId: ResortId;
   first?: boolean;
 }) {
-  const { t, go, setDeparture, selectResort } = useApp();
+  const { t, lang, go, setDeparture, selectResort } = useApp();
   const full = departure.seatsLeft <= 0;
   const low = !full && departure.seatsLeft <= LOW_SEATS;
 
@@ -43,12 +44,12 @@ function Row({
       accessibilityLabel={
         full
           ? `${departure.dates}, ${t.departuresFull}`
-          : `${departure.dates}, ${departure.nights} ${t.nights}, ${departure.seatsLeft} ${t.departuresSeats}`
+          : `${departure.dates}, ${nightsLabel(departure.nights, lang)}, ${departure.seatsLeft} ${t.departuresSeats}`
       }
     >
       <View style={styles.left}>
         <Text style={styles.dates}>{departure.dates}</Text>
-        <Text style={styles.nights}>{`${departure.nights} ${t.nights}`}</Text>
+        <Text style={styles.nights}>{nightsLabel(departure.nights, lang)}</Text>
 
         {full ? (
           <Text style={styles.seats}>{t.departuresFull}</Text>

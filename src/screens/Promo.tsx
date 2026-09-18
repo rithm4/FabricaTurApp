@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text } from '../components/Text';
 import { BackButton } from '../components/BackButton';
 import { useApp } from '../AppState';
+import { nightsLabel } from '../i18n';
 import { Price } from '../components/Price';
 import { Icon } from '../components/Icon';
 import { colors, radius, space, type } from '../theme';
@@ -21,7 +22,7 @@ function Included({ label, first }: { label: string; first?: boolean }) {
 }
 
 export function Promo() {
-  const { t, resorts, nextDeparture } = useApp();
+  const { t, lang, resorts, nextDeparture } = useApp();
   const insets = useSafeAreaInsets();
   // Aceeași ofertă ca pe Acasă, din aceleași date: cele două ecrane nu se pot contrazice.
   const featured = resorts[0];
@@ -50,12 +51,12 @@ export function Promo() {
         <Text style={styles.title}>
           {t.promoTitle
             .replace('{name}', featured.name.replace(/^Hotel /, ''))
-            .replace('{n}', String(featured.nights))}
+            .replace('{nights}', nightsLabel(featured.nights, lang))}
         </Text>
 
         <View style={styles.priceCard}>
           <View style={styles.priceTop}>
-            <Text style={styles.priceMeta}>{`${featured.name} · ${featured.nights} ${t.nights}`}</Text>
+            <Text style={styles.priceMeta}>{`${featured.name} · ${nightsLabel(featured.nights, lang)}`}</Text>
             {next ? <Text style={styles.priceDate}>{next.dates}</Text> : null}
           </View>
           <Price
@@ -68,7 +69,11 @@ export function Promo() {
 
         <View style={styles.includes}>
           <Included label={t.promoI1} first />
-          <Included label={t.promoI2} />
+          <Included
+            label={t.promoI2
+              .replace('{nights}', nightsLabel(featured.nights, lang))
+              .replace('{name}', featured.name)}
+          />
           <Included label={t.promoI3} />
         </View>
 

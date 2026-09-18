@@ -9,6 +9,7 @@ import { Price } from '../components/Price';
 import { PillButton } from '../components/PillButton';
 import { PhotoCarousel } from '../components/PhotoCarousel';
 import { useApp } from '../AppState';
+import { nightsLabel } from '../i18n';
 import { content, LOW_SEATS, profile, type Resort } from '../data';
 import { Icon } from '../components/Icon';
 import { colors, gradients, radius, shadow, space, TOUCH, type } from '../theme';
@@ -42,7 +43,7 @@ function DestinationTile({ resort }: { resort: Resort }) {
 }
 
 export function Home() {
-  const { t, go, fullName, resorts, nextDeparture, unreadCount } = useApp();
+  const { t, lang, go, fullName, resorts, nextDeparture, unreadCount } = useApp();
   // Cardul de sus arată întotdeauna prima plecare din listă, ca cele două să nu se contrazică.
   /** Oferta săptămânii e a primei destinații din listă. */
   const featured = resorts[0];
@@ -102,7 +103,7 @@ export function Home() {
 
           <View style={styles.cardBody}>
             <Text style={styles.cardTitle}>{`${featured.name}, ${featured.city}`}</Text>
-            <Text style={styles.cardMeta}>{t.heroMeta}</Text>
+            <Text style={styles.cardMeta}>{t.heroMeta.replace('{nights}', nightsLabel(featured.nights, lang))}</Text>
 
             {/* Fără nicio plecare programată, rândurile cu data și locurile nu au ce arăta. */}
             {next ? (

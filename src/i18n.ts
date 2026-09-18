@@ -17,13 +17,12 @@ const ro = {
   homeOffer: 'Oferta săptămânii',
   homeResorts: 'Destinații recomandate',
   seeAll: 'Vezi toate',
-  heroMeta: '7 zile · transport și mic dejun',
+  heroMeta: '{nights} · transport și mic dejun',
   seeOffer: 'Vezi oferta',
-  promoTitle: '{name}, {n} nopți cu transport și mic dejun',
+  promoTitle: '{name}, {nights} cu transport și mic dejun',
   listTitle: 'Stațiuni în Ungaria',
   hungary: 'Ungaria',
   water: 'Apa la sursă',
-  nights: 'nopți',
   stay: 'Sejur',
   fromPrice: 'De la',
   perPersonShort: 'Preț / pers.',
@@ -44,7 +43,7 @@ const ro = {
   settings: 'Setări',
   promoBadge: 'Ofertă limitată',
   promoI1: 'Transport tur-retur din Chișinău',
-  promoI2: 'Cazare 7 nopți la Hotel Kumánia',
+  promoI2: 'Cazare {nights} la {name}',
   promoI3: 'Acces la băile termale și wellness',
   promoLimit: 'Oferta este valabilă până la {date}.',
   formTitle: 'Cerere ofertă',
@@ -116,13 +115,12 @@ const ru: Record<keyof typeof ro, string> = {
   homeOffer: 'Предложение недели',
   homeResorts: 'Рекомендуемые направления',
   seeAll: 'Все курорты',
-  heroMeta: '7 дней · транспорт и завтрак',
+  heroMeta: '{nights} · транспорт и завтрак',
   seeOffer: 'Смотреть предложение',
-  promoTitle: '{name}, {n} ночей с транспортом и завтраком',
+  promoTitle: '{name}, {nights} с транспортом и завтраком',
   listTitle: 'Курорты Венгрии',
   hungary: 'Венгрия',
   water: 'Вода у источника',
-  nights: 'ночей',
   stay: 'Поездка',
   fromPrice: 'От',
   perPersonShort: 'Цена / чел.',
@@ -143,7 +141,7 @@ const ru: Record<keyof typeof ro, string> = {
   settings: 'Настройки',
   promoBadge: 'Ограниченное предложение',
   promoI1: 'Транспорт туда-обратно из Кишинёва',
-  promoI2: 'Проживание 7 ночей в Hotel Kumánia',
+  promoI2: 'Проживание {nights} в {name}',
   promoI3: 'Доступ к термальным баням и wellness',
   promoLimit: 'Предложение действует до {date}.',
   formTitle: 'Запрос предложения',
@@ -198,5 +196,22 @@ const ru: Record<keyof typeof ro, string> = {
 };
 
 export type Strings = typeof ro;
+
+/**
+ * „7 nopți", „1 noapte"; în rusă cele trei forme: „1 ночь", „3 ночи", „7 ночей".
+ * Numărul vine din panou, deci forma trebuie să se potrivească oricărei cifre.
+ */
+export function nightsLabel(n: number, lang: Lang) {
+  if (lang === 'ro') return n === 1 ? '1 noapte' : `${n} nopți`;
+  const mod10 = n % 10;
+  const mod100 = n % 100;
+  const word =
+    mod10 === 1 && mod100 !== 11
+      ? 'ночь'
+      : mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)
+        ? 'ночи'
+        : 'ночей';
+  return `${n} ${word}`;
+}
 
 export const strings: Record<Lang, Strings> = { ro, ru };
