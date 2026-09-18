@@ -222,7 +222,7 @@ function OfferCard({
           </button>
         ) : null}
         <span className="form-actions-end">
-          <PreviewButton resort={resort} screen="promo" label="Vezi oferta în aplicație" dirty={changed} />
+          <PreviewButton screen="promo" id={resort.id} name={resort.name} hidden={!resort.active} data={resort} label="Vezi oferta în aplicație" dirty={changed} />
           {!changed && savedDiscount > 0 ? (
             // O reducere salvată se vinde mai bine anunțată.
             <button

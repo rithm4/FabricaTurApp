@@ -6,6 +6,7 @@ import {
   LayoutDashboard,
   LogOut,
   MapPin,
+  Newspaper,
   RefreshCw,
   Settings as SettingsIcon,
   Tag,
@@ -19,6 +20,7 @@ import { Login } from './Login';
 import type { Compose, Section } from './nav';
 import { Departures } from './sections/Departures';
 import { Destinations } from './sections/Destinations';
+import { Articles } from './sections/Articles';
 import { Notifications } from './sections/Notifications';
 import { Offers } from './sections/Offers';
 import { Requests } from './sections/Requests';
@@ -35,6 +37,7 @@ const NAV: { id: Section; label: string; icon: ComponentType<LucideProps> }[] = 
   { id: 'oferte', label: 'Oferte', icon: Tag },
   { id: 'destinatii', label: 'Destinații', icon: MapPin },
   { id: 'plecari', label: 'Plecări', icon: CalendarDays },
+  { id: 'articole', label: 'Articole', icon: Newspaper },
   { id: 'setari', label: 'Setări', icon: SettingsIcon },
 ];
 
@@ -89,6 +92,16 @@ function Panel({ email }: { email: string | null }) {
           <button
             type="button"
             className="btn btn-icon btn-quiet"
+            onClick={() => go('articole')}
+            aria-label="Articole"
+            aria-current={section === 'articole' ? 'page' : undefined}
+            title="Articole"
+          >
+            <Newspaper size={19} />
+          </button>
+          <button
+            type="button"
+            className="btn btn-icon btn-quiet"
             onClick={() => go('setari')}
             aria-label="Setări"
             aria-current={section === 'setari' ? 'page' : undefined}
@@ -120,7 +133,7 @@ function Panel({ email }: { email: string | null }) {
               key={id}
               type="button"
               // Pe telefon, Setările stau sus, lângă ieșire: jos ar fi prea multe butoane.
-              className={id === 'setari' ? 'nav-item nav-secondary' : 'nav-item'}
+              className={id === 'setari' || id === 'articole' ? 'nav-item nav-secondary' : 'nav-item'}
               aria-current={section === id ? 'page' : undefined}
               onClick={() => go(id)}
             >
@@ -190,6 +203,7 @@ function Panel({ email }: { email: string | null }) {
             {section === 'oferte' && <Offers {...props} />}
             {section === 'destinatii' && <Destinations {...props} />}
             {section === 'plecari' && <Departures {...props} />}
+            {section === 'articole' && <Articles {...props} />}
             {section === 'setari' && <Settings {...props} />}
           </>
         )}

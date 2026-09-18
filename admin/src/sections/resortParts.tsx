@@ -106,13 +106,24 @@ function useDeviceScale() {
  * pe pagina ofertei sau a hotelului. Arată ce e salvat — de aceea cere salvarea întâi.
  */
 export function PreviewButton({
-  resort,
   screen,
+  id,
+  name,
+  hidden,
+  hiddenNote = 'Destinația e ascunsă: clienții nu o văd încă. Aici o vezi doar tu.',
+  data,
   label,
   dirty,
 }: {
-  resort: Resort;
-  screen: 'promo' | 'resort';
+  screen: 'promo' | 'resort' | 'article';
+  /** Numărul destinației sau al articolului. */
+  id: string;
+  name: string;
+  /** Nu se vede încă în aplicație (destinație ascunsă, articol ciornă). */
+  hidden: boolean;
+  hiddenNote?: string;
+  /** Datele salvate: când se schimbă, previzualizarea se reîncarcă singură. */
+  data: unknown;
   label: string;
   dirty: boolean;
 }) {
@@ -122,8 +133,9 @@ export function PreviewButton({
   const scale = useDeviceScale();
 
   // Se reîncarcă singur după fiecare salvare: cheia se schimbă odată cu datele.
-  const version = `${hash(JSON.stringify(resort))}-${reload}`;
-  const src = `${APP_URL}?preview=${screen}&resort=${encodeURIComponent(resort.id)}&lang=${lang}&v=${encodeURIComponent(version)}`;
+  const version = `${hash(JSON.stringify(data))}-${reload}`;
+  const param = screen === 'article' ? 'article' : 'resort';
+  const src = `${APP_URL}?preview=${screen}&${param}=${encodeURIComponent(id)}&lang=${lang}&v=${encodeURIComponent(version)}`;
 
   return (
     <>
@@ -137,7 +149,7 @@ export function PreviewButton({
             <div className="modal-head">
               <div>
                 <strong>{label}</strong>
-                <span className="hint">{resort.name}</span>
+                <span className="hint">{name}</span>
               </div>
               <button type="button" className="btn btn-icon btn-quiet" onClick={() => setOpen(false)} aria-label="Închide">
                 <X size={20} />
@@ -162,9 +174,9 @@ export function PreviewButton({
                 Ai modificări nesalvate: aici se vede varianta salvată. Salvează ca să le vezi.
               </p>
             ) : null}
-            {!resort.active ? (
+            {hidden ? (
               <p className="field-note" style={{ margin: 0 }}>
-                Destinația e ascunsă: clienții nu o văd încă. Aici o vezi doar tu.
+                {hiddenNote}
               </p>
             ) : null}
 
@@ -186,7 +198,7 @@ export function PreviewButton({
                     <BatteryFull size={20} strokeWidth={2} />
                   </span>
                 </div>
-                <iframe key={src} src={src} title={`${label} — ${resort.name}`} />
+                <iframe key={src} src={src} title={`${label} — ${name}`} />
                 <span className="device-home" aria-hidden />
               </div>
             </div>

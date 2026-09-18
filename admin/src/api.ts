@@ -8,6 +8,7 @@ import type {
   ResortId,
   SentNotification,
   Settings,
+  Article,
 } from './types';
 
 /**
@@ -57,6 +58,33 @@ type ResortRow = {
 };
 
 type SettingsRow = { whatsapp: string; tagline_ro: string; tagline_ru: string };
+
+type ArticleRow = {
+  id: string;
+  updated_at: string;
+  published: boolean;
+  position: number;
+  resort_id: string | null;
+  cover: string;
+  title_ro: string;
+  title_ru: string;
+  summary_ro: string;
+  summary_ru: string;
+  body_ro: string;
+  body_ru: string;
+};
+
+const toArticle = (a: ArticleRow): Article => ({
+  id: a.id,
+  updatedAt: a.updated_at,
+  published: a.published,
+  position: a.position,
+  resortId: a.resort_id,
+  cover: a.cover,
+  title: { ro: a.title_ro, ru: a.title_ru },
+  summary: { ro: a.summary_ro, ru: a.summary_ru },
+  body: { ro: a.body_ro, ru: a.body_ru },
+});
 
 const toResort = (r: ResortRow): Resort => ({
   id: r.id,
@@ -282,6 +310,56 @@ export const api = {
       if (at < 0) return;
       const { error } = await supabase.storage.from(BUCKET).remove([url.slice(at + marker.length)]);
       if (error) throw new Error(error.message);
+    },
+  },
+
+  articles: {
+    async list(): Promise<Article[]> {
+      return rows<ArticleRow>(
+        await supabase.from('articles').select('*').order('position'),
+      ).map(toArticle);
+    },
+    /** Un articol nou, ca ciornă, la finalul listei. Întoarce numărul lui. */
+    async create(position: number): Promise<string> {
+      const row = check<ArticleRow>(
+        await supabase.from('articles').insert({ position }).select().single(),
+      );
+      return row.id;
+    },
+    async update(id: string, patch: Partial<Article>): Promise<void> {
+      check(
+        await supabase
+          .from('articles')
+          .update({
+            ...(patch.published !== undefined && { published: patch.published }),
+            ...(patch.position !== undefined && { position: patch.position }),
+            ...(patch.resortId !== undefined && { resort_id: patch.resortId }),
+            ...(patch.cover !== undefined && { cover: patch.cover }),
+            ...(patch.title !== undefined && { title_ro: patch.title.ro.trim(), title_ru: patch.title.ru.trim() }),
+            ...(patch.summary !== undefined && { summary_ro: patch.summary.ro.trim(), summary_ru: patch.summary.ru.trim() }),
+            ...(patch.body !== undefined && { body_ro: patch.body.ro.trim(), body_ru: patch.body.ru.trim() }),
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', id),
+      );
+    },
+    async remove(id: string): Promise<void> {
+      check(await supabase.from('articles').delete().eq('id', id));
+    },
+    async swapPositions(a: Article, b: Article): Promise<void> {
+      check(await supabase.from('articles').update({ position: b.position }).eq('id', a.id));
+      check(await supabase.from('articles').update({ position: a.position }).eq('id', b.id));
+    },
+    /** Coperta, micșorată ca fotografiile hotelurilor. */
+    async uploadCover(file: File): Promise<string> {
+      const blob = await shrink(file);
+      const path = `articole/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.jpg`;
+      const { error } = await supabase.storage.from(BUCKET).upload(path, blob, {
+        contentType: 'image/jpeg',
+        cacheControl: '31536000',
+      });
+      if (error) throw new Error(error.message);
+      return supabase.storage.from(BUCKET).getPublicUrl(path).data.publicUrl;
     },
   },
 

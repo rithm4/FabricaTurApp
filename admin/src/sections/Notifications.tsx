@@ -129,7 +129,8 @@ function HistoryItem({
 
 export function Notifications({ data, ready, refresh, compose }: SectionProps & { compose?: Compose }) {
   const toast = useToast();
-  const { resorts, departures, notifications: history } = data;
+  const { resorts, departures, notifications: history, articles } = data;
+  const published = articles.filter((a) => a.published && a.title.ro.trim());
 
   const [audience, setAudience] = useState<Audience>('promo');
   const [target, setTarget] = useState<NotificationTarget>('promo');
@@ -143,7 +144,13 @@ export function Notifications({ data, ready, refresh, compose }: SectionProps & 
   /** Hotelul despre care e vorba: cel spre care duce notificarea, altfel primul din ofertă. */
   const templateResort =
     resorts.find((r) => r.id === target) ?? resorts.find((r) => r.featured) ?? resorts[0];
-  const template = templateResort ? buildTemplate(audience, templateResort, departures) : null;
+  // O notificare spre un articol se completează din titlul și rezumatul lui.
+  const targetArticle = published.find((a) => `article:${a.id}` === target);
+  const template = targetArticle
+    ? { title: targetArticle.title, body: targetArticle.summary }
+    : templateResort
+      ? buildTemplate(audience, templateResort, departures)
+      : null;
 
   const fill = (t: { title: Localized; body: Localized }) => {
     setTitle(t.title);
@@ -246,6 +253,15 @@ export function Notifications({ data, ready, refresh, compose }: SectionProps & 
                 </option>
               ))}
               <option value="bookings">{targetLabel('bookings', resorts)}</option>
+              {published.length > 0 ? (
+                <optgroup label="Articole">
+                  {published.map((a) => (
+                    <option key={a.id} value={`article:${a.id}`}>
+                      {a.title.ro}
+                    </option>
+                  ))}
+                </optgroup>
+              ) : null}
             </select>
           </div>
 
@@ -253,7 +269,7 @@ export function Notifications({ data, ready, refresh, compose }: SectionProps & 
             <div className="label-row">
               <span className="label">3 · Textul</span>
               {/* Cifrele vin din ofertă și din plecări: prețul și data nu pot fi greșite. */}
-              {audience !== 'news' ? (
+              {audience !== 'news' || targetArticle ? (
                 <button
                   type="button"
                   className="btn btn-sm btn-secondary btn-wrap"
@@ -265,7 +281,8 @@ export function Notifications({ data, ready, refresh, compose }: SectionProps & 
                       : 'Nu există plecări potrivite pentru un text automat'
                   }
                 >
-                  <Sparkles size={16} /> Completează din ofertă · {templateResort?.name}
+                  <Sparkles size={16} />{' '}
+                  {targetArticle ? 'Completează din articol' : `Completează din ofertă · ${templateResort?.name}`}
                 </button>
               ) : null}
             </div>
@@ -386,7 +403,7 @@ export function Notifications({ data, ready, refresh, compose }: SectionProps & 
               <HistoryItem
                 key={n.id}
                 item={n}
-                target={targetLabel(n.target as NotificationTarget, resorts)}
+                target={targetLabel(n.target as NotificationTarget, resorts, articles)}
                 onReuse={() => reuse(n)}
                 onRemove={() => remove(n)}
               />

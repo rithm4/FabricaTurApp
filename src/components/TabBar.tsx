@@ -148,6 +148,8 @@ export function TabBar() {
   const parent: Partial<Record<ScreenName, ScreenName>> = {
     notifSettings: 'profile',
     bookings: 'profile',
+    articles: 'home',
+    article: 'home',
   };
   const current = parent[screen] ?? screen;
   const activeIndex = tabs.findIndex((tab) => tab.target === current);

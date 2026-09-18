@@ -1,5 +1,5 @@
 import { supabase } from './supabase';
-import { content, type Audience, type Departure, type NotificationItem, type NotificationTarget, type Resort } from './data';
+import { content, type Article, type ArticleBlock, type Audience, type Departure, type NotificationItem, type NotificationTarget, type Resort } from './data';
 import type { IconName } from './components/Icon';
 import { photos } from './theme';
 import type { Lang, Strings } from './i18n';
@@ -42,6 +42,20 @@ type ResortRow = {
   photos?: string[];
 };
 
+type ArticleRow = {
+  id: string;
+  published: boolean;
+  position: number;
+  resort_id: string | null;
+  cover: string;
+  title_ro: string;
+  title_ru: string;
+  summary_ro: string;
+  summary_ru: string;
+  body_ro: string;
+  body_ru: string;
+};
+
 type SettingsRow = {
   whatsapp: string;
   tagline_ro: string;
@@ -72,9 +86,11 @@ export type Remote = {
   departures: DepartureRow[] | null;
   notifications: NotificationRow[] | null;
   settings: SettingsRow | null;
+  articles: ArticleRow[] | null;
 };
 
 export const EMPTY_REMOTE: Remote = {
+  articles: null,
   resorts: null,
   departures: null,
   notifications: null,
@@ -87,13 +103,14 @@ async function list<T>(table: string, order: string, ascending: boolean): Promis
 }
 
 export async function fetchRemote(): Promise<Remote> {
-  const [resorts, departures, notifications, settings] = await Promise.all([
+  const [resorts, departures, notifications, settings, articles] = await Promise.all([
     list<ResortRow>('resorts', 'id', true),
     list<DepartureRow>('departures', 'start_date', true),
     list<NotificationRow>('notifications', 'sent_at', false),
     list<SettingsRow>('settings', 'id', true),
+    list<ArticleRow>('articles', 'position', true),
   ]);
-  return { resorts, departures, notifications, settings: settings?.[0] ?? null };
+  return { resorts, departures, notifications, settings: settings?.[0] ?? null, articles };
 }
 
 /**
@@ -102,7 +119,7 @@ export async function fetchRemote(): Promise<Remote> {
  */
 export function onRemoteChange(callback: () => void) {
   const channel = supabase.channel('aplicatie');
-  for (const table of ['resorts', 'departures', 'notifications', 'settings']) {
+  for (const table of ['resorts', 'departures', 'notifications', 'settings', 'articles']) {
     channel.on('postgres_changes', { event: '*', schema: 'public', table }, callback);
   }
   channel.subscribe();
@@ -254,6 +271,61 @@ const ICON: Record<NotificationRow['audience'], IconName> = {
 };
 
 
+/**
+ * Textul unui articol în blocuri: rândurile care încep cu „- " devin listă, restul
+ * paragrafe. Un rând gol desparte paragrafele.
+ */
+function toBlocks(body: string): ArticleBlock[] {
+  const blocks: ArticleBlock[] = [];
+  for (const chunk of body.replace(/\r/g, '').split(/\n\s*\n/)) {
+    const lines = chunk.split('\n').map((l) => l.trim()).filter(Boolean);
+    let paragraph: string[] = [];
+    const flush = () => {
+      if (paragraph.length) blocks.push({ kind: 'p', text: paragraph.join(' ') });
+      paragraph = [];
+    };
+    for (const line of lines) {
+      if (/^[-•–]\s+/.test(line)) {
+        flush();
+        blocks.push({ kind: 'li', text: line.replace(/^[-•–]\s+/, '') });
+      } else paragraph.push(line);
+    }
+    flush();
+  }
+  return blocks;
+}
+
+export function buildArticle(row: ArticleRow, lang: Lang): Article {
+  // Fără traducere în rusă, articolul apare în română, nu gol.
+  const pick = (ro: string, ru: string) => (lang === 'ru' && ru.trim() ? ru : ro);
+  const body = pick(row.body_ro, row.body_ru);
+  const words = body.split(/\s+/).filter(Boolean).length;
+  return {
+    id: row.id,
+    title: pick(row.title_ro, row.title_ru),
+    summary: pick(row.summary_ro, row.summary_ru),
+    blocks: toBlocks(body),
+    cover: row.cover || undefined,
+    resortId: row.resort_id ?? undefined,
+    minutes: Math.max(1, Math.round(words / 180)),
+  };
+}
+
+/** Articolele publicate, în ordinea din panou. Fără server: nimic, nu texte inventate. */
+export function buildArticles(remote: Remote, lang: Lang): Article[] {
+  return (remote.articles ?? [])
+    .filter((a) => a.published && (a.title_ro.trim() || a.title_ru.trim()))
+    .sort((a, b) => a.position - b.position)
+    .map((a) => buildArticle(a, lang));
+}
+
+/** Previzualizarea din panou: articolul după număr, chiar dacă e încă ciornă. */
+export async function fetchArticlePreview(id: string): Promise<ArticleRow | null> {
+  const { data, error } = await supabase.rpc('article_preview', { p_id: id });
+  if (error || !Array.isArray(data) || !data[0]) return null;
+  return data[0] as ArticleRow;
+}
+
 /** Datele agenției din panou (Setări): numărul de WhatsApp și sloganul. */
 export function buildSettings(remote: Remote, lang: Lang, t: Strings) {
   const s = remote.settings;
@@ -266,6 +338,9 @@ export function buildSettings(remote: Remote, lang: Lang, t: Strings) {
 export function buildNotifications(remote: Remote, lang: Lang, t: Strings): NotificationItem[] {
   // Fără server nu arătăm nimic inventat: lista goală spune adevărul.
   if (!remote.notifications) return [];
+  const articleIds = new Set(
+    (remote.articles ?? []).filter((a) => a.published).map((a) => `article:${a.id}`),
+  );
   const visible = new Set(
     (remote.resorts ?? content.resorts[lang]).filter((r) => (r as { active?: boolean }).active !== false).map((r) => r.id),
   );
@@ -276,7 +351,10 @@ export function buildNotifications(remote: Remote, lang: Lang, t: Strings): Noti
     sentAt: n.sent_at,
     icon: ICON[n.audience] ?? 'news',
     // Doar spre o destinație care chiar se vede în aplicație; altfel, spre ofertă.
-    target: n.target === 'bookings' || visible.has(n.target) ? n.target : 'promo',
+    target:
+      n.target === 'bookings' || visible.has(n.target) || articleIds.has(n.target)
+        ? n.target
+        : 'promo',
     title: lang === 'ro' ? n.title_ro : n.title_ru,
     text: lang === 'ro' ? n.body_ro : n.body_ru,
     when: relative(n.sent_at, t),

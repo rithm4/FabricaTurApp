@@ -100,9 +100,17 @@ export const audienceLabel: Record<Audience, string> = {
   news: 'Noutăți despre stațiuni',
 };
 
-export function targetLabel(target: NotificationTarget, resorts: Resort[]) {
+export function targetLabel(
+  target: NotificationTarget,
+  resorts: Resort[],
+  articles: { id: string; title: { ro: string } }[] = [],
+) {
   if (target === 'promo') return 'Oferta săptămânii';
   if (target === 'bookings') return 'Rezervările mele';
+  if (target.startsWith('article:')) {
+    const article = articles.find((a) => `article:${a.id}` === target);
+    return article ? `Articolul „${article.title.ro}”` : 'Un articol șters';
+  }
   return resorts.find((r) => r.id === target)?.name ?? target;
 }
 

@@ -163,5 +163,5 @@ where not exists (select 1 from public.departures);
 -- ── După acest fișier ────────────────────────────────────────────────────────
 -- Rulează apoi, în ordine: 003-stari-si-locuri.sql, 006-stare-in-timp-real.sql și
 -- 007-verificari-cerere.sql, 008-oferta-valabila.sql, 009-continut-din-panou.sql,
--- 010-destinatii-noi.sql. (002 e deja inclus mai sus;
+-- 010-destinatii-noi.sql, 011-articole.sql. (002 e deja inclus mai sus;
 -- 004 și 005 sunt cuprinse în 007.)

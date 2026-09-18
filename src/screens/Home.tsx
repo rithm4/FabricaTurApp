@@ -12,6 +12,7 @@ import { useApp } from '../AppState';
 import { nightsLabel } from '../i18n';
 import { LOW_SEATS, type Resort } from '../data';
 import { initials } from './Profile';
+import { ArticleCard } from './Articles';
 import { Icon } from '../components/Icon';
 import { colors, gradients, radius, shadow, space, TOUCH, type } from '../theme';
 
@@ -44,7 +45,7 @@ function DestinationTile({ resort }: { resort: Resort }) {
 }
 
 export function Home() {
-  const { t, lang, go, fullName, resorts, nextDeparture, unreadCount } = useApp();
+  const { t, lang, go, fullName, resorts, nextDeparture, unreadCount, articles } = useApp();
   // Cardul de sus arată întotdeauna prima plecare din listă, ca cele două să nu se contrazică.
   /** Oferta săptămânii e a primei destinații din listă. */
   const featured = resorts[0];
@@ -180,6 +181,24 @@ export function Home() {
             ))}
           </ScrollView>
         )}
+
+        {/* Sfaturile: primele trei pe Acasă, toate în lista lor. Fără articole, secțiunea lipsește. */}
+        {articles.length > 0 ? (
+          <>
+            <View style={styles.sectionRow}>
+              <Text style={styles.sectionTitle}>{t.articlesTitle}</Text>
+              <Pressable onPress={() => go('articles')} style={styles.linkButton} accessibilityRole="button">
+                <Text style={styles.link}>{t.seeAll}</Text>
+                <Icon name="arrow-right" size={17} color={colors.link} />
+              </Pressable>
+            </View>
+            <View style={styles.articles}>
+              {articles.slice(0, 3).map((article) => (
+                <ArticleCard key={article.id} article={article} />
+              ))}
+            </View>
+          </>
+        ) : null}
       </ScrollView>
     </View>
   );
@@ -302,6 +321,7 @@ const styles = StyleSheet.create({
   tiles: { flexDirection: 'row', gap: space.md, marginTop: space.md },
   // Coloană, nu rând: cardul se întinde pe toată lățimea celulei.
   tileCell: { flex: 1 },
+  articles: { gap: space.md, marginTop: space.md },
   // Derularea ajunge până la marginile ecranului, dar primul card stă aliniat cu textul.
   tilesScrollBox: { marginHorizontal: -space.lg, marginTop: space.md },
   tilesScroll: { gap: space.md, paddingHorizontal: space.lg },

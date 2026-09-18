@@ -47,6 +47,21 @@ export type Resort = {
   photos: string[];
 };
 
+/** Un articol informativ. Ciorna nu se vede în aplicație. */
+export type Article = {
+  id: string;
+  updatedAt: string;
+  published: boolean;
+  position: number;
+  /** Hotelul de care ține; la final, în aplicație, apare butonul spre pagina lui. */
+  resortId: ResortId | null;
+  cover: string;
+  title: Localized;
+  summary: Localized;
+  /** Textul: paragrafe despărțite de un rând gol; „- " la început de rând = listă. */
+  body: Localized;
+};
+
 /** Datele agenției, un singur rând. */
 export type Settings = {
   /** Doar cifre, cu prefixul țării: 37369123456. Gol = cererile nu pleacă pe WhatsApp. */

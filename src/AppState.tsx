@@ -2,12 +2,15 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { AppState as SystemAppState, BackHandler, Platform } from 'react-native';
 
-import { AUDIENCES, type Departure, type NotificationItem, type Resort, type ResortId } from './data';
+import { AUDIENCES, type Article, type Departure, type NotificationItem, type Resort, type ResortId } from './data';
 import {
   EMPTY_REMOTE,
   buildDepartures,
   buildNotifications,
   buildResorts,
+  buildArticle,
+  buildArticles,
+  fetchArticlePreview,
   buildSettings,
   fetchRemote,
   fetchRequestStatuses,
@@ -28,7 +31,9 @@ export type ScreenName =
   | 'form'
   | 'bookings'
   | 'profile'
-  | 'notifSettings';
+  | 'notifSettings'
+  | 'articles'
+  | 'article';
 
 /** Datele introduse la înregistrare. Aplicația nu cere nimic în plus. */
 export type Account = {
@@ -103,6 +108,11 @@ type AppState = {
   nextDeparture: (resortId: ResortId) => Departure | undefined;
   /** Noutățile trimise din panoul operatorului, doar din categoriile pornite în setări. */
   notifications: NotificationItem[];
+  /** Articolele informative publicate. */
+  articles: Article[];
+  /** Articolul deschis acum. */
+  article: Article | undefined;
+  openArticle: (id: string) => void;
   /** Datele agenției scrise în panou: WhatsApp și sloganul de la înregistrare. */
   agency: { whatsapp: string; tagline: string };
   /** Câte noutăți n-a văzut încă omul. */
@@ -138,6 +148,7 @@ function mergeRemote(base: Remote, update: Remote): Remote {
     departures: update.departures ?? base.departures,
     notifications: update.notifications ?? base.notifications,
     settings: update.settings ?? base.settings,
+    articles: update.articles ?? base.articles,
   };
 }
 
@@ -146,16 +157,17 @@ function mergeRemote(base: Remote, update: Remote): Remote {
  * pagina ofertei sau a hotelului (`?preview=promo&resort=kumania&lang=ro`). Nu cere
  * înregistrare, nu scrie nimic pe telefon și nu trimite cereri: e doar de privit.
  */
-type Preview = { screen: 'promo' | 'resort'; resort: string; lang: Lang };
+type Preview = { screen: 'promo' | 'resort' | 'article'; resort: string; article: string; lang: Lang };
 
 function readPreview(): Preview | null {
   if (Platform.OS !== 'web' || typeof window === 'undefined') return null;
   const params = new URLSearchParams(window.location.search);
   const screen = params.get('preview');
-  if (screen !== 'promo' && screen !== 'resort') return null;
+  if (screen !== 'promo' && screen !== 'resort' && screen !== 'article') return null;
   return {
     screen,
     resort: params.get('resort') ?? '',
+    article: params.get('article') ?? '',
     lang: params.get('lang') === 'ru' ? 'ru' : 'ro',
   };
 }
@@ -172,6 +184,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [account, setAccount] = useState<Account>(EMPTY);
   const [departure, setDeparture] = useState<Departure | null>(null);
   const [resortId, setResortId] = useState<ResortId>(PREVIEW?.resort || 'kumania');
+  const [articleId, setArticleId] = useState(PREVIEW?.article ?? '');
+  /** Previzualizarea unei ciorne: aplicația n-o vede printre cele publicate, o cere separat. */
+  const [previewArticle, setPreviewArticle] = useState<Article | undefined>();
+  useEffect(() => {
+    if (PREVIEW?.screen !== 'article' || !PREVIEW.article) return;
+    fetchArticlePreview(PREVIEW.article).then((row) => {
+      if (row) setPreviewArticle(buildArticle(row, PREVIEW!.lang));
+    });
+  }, []);
   const [requests, setRequests] = useState<OfferRequest[]>([]);
   const [notifSeenAt, setNotifSeenAt] = useState('');
   /** Ce a venit de pe server. Până răspunde, și dacă nu răspunde, ecranele folosesc data.ts. */
@@ -375,6 +396,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
       nextDeparture: (id) => buildDepartures(remote, lang, id).find((d) => d.seatsLeft > 0),
       notifications,
       agency: buildSettings(remote, lang, strings[lang]),
+      articles: buildArticles(remote, lang),
+      article:
+        previewArticle ?? buildArticles(remote, lang).find((a) => a.id === articleId),
+      openArticle: (id) => {
+        setArticleId(id);
+        go('article');
+      },
       unreadCount,
       notifSeenAt,
       markNotifsSeen: () => {
@@ -395,7 +423,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       },
     }),
     // `go` și `back` citesc `history` și `screen`, deci se reconstruiesc odată cu ele.
-    [screen, lang, notifOn, account, departure, resortId, history, requests, remote, notifSeenAt],
+    [screen, lang, notifOn, account, departure, resortId, history, requests, remote, notifSeenAt, articleId, previewArticle],
   );
 
   if (!restored) return null;

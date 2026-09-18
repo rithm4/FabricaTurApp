@@ -164,6 +164,23 @@ export type Departure = {
   start?: string;
 };
 
+/** Un bloc din textul unui articol: paragraf sau rând de listă („- " la început de rând). */
+export type ArticleBlock = { kind: 'p' | 'li'; text: string };
+
+/** Un articol informativ, scris în panou. */
+export type Article = {
+  id: string;
+  title: string;
+  summary: string;
+  blocks: ArticleBlock[];
+  /** Fotografia de copertă; lipsește = articolul apare fără imagine. */
+  cover?: string;
+  /** Hotelul de care ține articolul; la final apare butonul spre pagina lui. */
+  resortId?: string;
+  /** Minute de citit, din numărul de cuvinte. */
+  minutes: number;
+};
+
 /** Sub acest prag, numărul de locuri devine un semnal, nu o informație. */
 export const LOW_SEATS = 6;
 

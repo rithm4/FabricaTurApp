@@ -17,6 +17,8 @@ import { Bookings } from './src/screens/Bookings';
 import { Home } from './src/screens/Home';
 import { Notifications } from './src/screens/Notifications';
 import { NotificationSettings } from './src/screens/NotificationSettings';
+import { ArticlePage } from './src/screens/Article';
+import { Articles } from './src/screens/Articles';
 import { Profile } from './src/screens/Profile';
 import { Promo } from './src/screens/Promo';
 import { RequestForm } from './src/screens/RequestForm';
@@ -73,7 +75,7 @@ function Footer() {
 }
 
 function Router() {
-  const { screen } = useApp();
+  const { screen, article } = useApp();
 
   // Înregistrarea are fundalul ei și nicio bară de navigație.
   if (screen === 'signin') {
@@ -88,7 +90,8 @@ function Router() {
   }
 
   // Ecranele cu fotografie pe toată lățimea încep sub bara de sistem, nu sub ea.
-  const fullBleed = screen === 'resort' || screen === 'promo';
+  // Articolul cu copertă începe tot de sus; fără copertă, sub bara de sistem, ca un ecran obișnuit.
+  const fullBleed = screen === 'resort' || screen === 'promo' || (screen === 'article' && !!article?.cover);
 
   return (
     <SafeAreaView style={styles.app} edges={fullBleed ? [] : ['top']}>
@@ -104,6 +107,8 @@ function Router() {
           {screen === 'bookings' && <Bookings />}
           {screen === 'profile' && <Profile />}
           {screen === 'notifSettings' && <NotificationSettings />}
+          {screen === 'articles' && <Articles />}
+          {screen === 'article' && <ArticlePage />}
         </Screen>
       </View>
       <Footer />

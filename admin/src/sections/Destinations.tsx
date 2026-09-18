@@ -233,7 +233,7 @@ function DestinationCard({
               </button>
             ) : null}
             <span className="form-actions-end">
-              <PreviewButton resort={resort} screen="resort" label="Vezi pagina în aplicație" dirty={changed} />
+              <PreviewButton screen="resort" id={resort.id} name={resort.name} hidden={!resort.active} data={resort} label="Vezi pagina în aplicație" dirty={changed} />
             </span>
           </div>
         </>
@@ -242,7 +242,7 @@ function DestinationCard({
           <Photos resort={resort} refresh={refresh} />
           <div className="form-actions">
             <span className="form-actions-end">
-              <PreviewButton resort={resort} screen="resort" label="Vezi pagina în aplicație" dirty={false} />
+              <PreviewButton screen="resort" id={resort.id} name={resort.name} hidden={!resort.active} data={resort} label="Vezi pagina în aplicație" dirty={false} />
             </span>
           </div>
         </>

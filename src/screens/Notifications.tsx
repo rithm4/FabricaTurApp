@@ -8,11 +8,12 @@ import { Icon } from '../components/Icon';
 import { colors, radius, space, TOUCH, type } from '../theme';
 
 function NotificationRow({ item, fresh }: { item: NotificationItem; fresh: boolean }) {
-  const { t, go, openResort } = useApp();
+  const { t, go, openResort, openArticle } = useApp();
 
   // Fiecare notificare duce unde spune că duce, nu toate la aceeași promoție.
   const open = () => {
     if (item.target === 'promo' || item.target === 'bookings') go(item.target);
+    else if (item.target.startsWith('article:')) openArticle(item.target.slice('article:'.length));
     else openResort(item.target);
   };
 
