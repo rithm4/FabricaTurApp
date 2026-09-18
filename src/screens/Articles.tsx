@@ -1,3 +1,4 @@
+import { LinearGradient } from 'expo-linear-gradient';
 import { Image, ScrollView, StyleSheet, View } from 'react-native';
 
 import { Text } from '../components/Text';
@@ -6,7 +7,7 @@ import { BackButton } from '../components/BackButton';
 import { Icon } from '../components/Icon';
 import { useApp } from '../AppState';
 import type { Article } from '../data';
-import { colors, radius, shadow, space, type } from '../theme';
+import { colors, gradients, radius, shadow, space, type } from '../theme';
 
 /** Un articol în listă: copertă mică, titlu, rezumat și cât durează cititul. */
 export function ArticleCard({ article }: { article: Article }) {
@@ -38,6 +39,39 @@ export function ArticleCard({ article }: { article: Article }) {
             {article.summary}
           </Text>
         ) : null}
+        <Text style={styles.minutes}>{minutes}</Text>
+      </View>
+    </Press>
+  );
+}
+
+/**
+ * Cardul mare de pe Acasă: fotografie sus, titlu dedesubt. Se derulează în lateral, ca să
+ * încapă mai multe articole fără să împingă restul paginii în jos.
+ */
+export function ArticleTile({ article }: { article: Article }) {
+  const { t, openArticle } = useApp();
+  const minutes = t.articleMinutes.replace('{n}', String(article.minutes));
+
+  return (
+    <Press
+      onPress={() => openArticle(article.id)}
+      scaleTo={0.97}
+      style={styles.tile}
+      accessibilityRole="button"
+      accessibilityLabel={`${article.title}. ${minutes}`}
+    >
+      {article.cover ? (
+        <Image source={{ uri: article.cover }} style={styles.tileCover} resizeMode="cover" />
+      ) : (
+        <LinearGradient colors={gradients.water} style={[styles.tileCover, styles.tileCoverEmpty]}>
+          <Icon name="news" size={34} color={colors.white} />
+        </LinearGradient>
+      )}
+      <View style={styles.tileBody}>
+        <Text style={styles.tileTitle} numberOfLines={2}>
+          {article.title}
+        </Text>
         <Text style={styles.minutes}>{minutes}</Text>
       </View>
     </Press>
@@ -87,4 +121,16 @@ const styles = StyleSheet.create({
   title: { ...type.bodyStrong, color: colors.ink },
   summary: { ...type.small, color: colors.muted, marginTop: 2 },
   minutes: { ...type.micro, color: colors.link, marginTop: space.sm },
+
+  tile: {
+    width: 250,
+    borderRadius: radius.xl,
+    backgroundColor: colors.white,
+    overflow: 'hidden',
+    ...shadow.card,
+  },
+  tileCover: { width: '100%', height: 140, backgroundColor: colors.chipBlue },
+  tileCoverEmpty: { alignItems: 'center', justifyContent: 'center' },
+  tileBody: { padding: space.lg, paddingTop: space.md },
+  tileTitle: { ...type.bodyStrong, color: colors.ink, minHeight: 48 },
 });

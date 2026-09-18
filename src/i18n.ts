@@ -204,6 +204,16 @@ export function personsLabel(party: string, lang: Lang) {
   return `${party} человек`;
 }
 
+/** „Ultimele 2 locuri", „Ultimul loc"; în rusă „Последние 2 места", „Последнее место". */
+export function lastSeatsLabel(n: number, lang: Lang) {
+  if (lang === 'ro') return n === 1 ? 'Ultimul loc' : `Ultimele ${n} locuri`;
+  if (n === 1) return 'Последнее место';
+  const mod10 = n % 10;
+  const mod100 = n % 100;
+  const word = mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14) ? 'места' : 'мест';
+  return `Последние ${n} ${word}`;
+}
+
 /** „69123456" → „+373 69 123 456": numărul, așa cum îl citește un om. */
 export function formatPhone(phone: string) {
   const digits = phone.replace(/\D/g, '').replace(/^373/, '');

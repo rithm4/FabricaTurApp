@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { ArrowDown, ArrowUp, Eye, EyeOff, FilePlus2, ImagePlus, Newspaper, Pencil, Trash2 } from 'lucide-react';
+import { ArrowDown, ArrowUp, Bell, Eye, EyeOff, FilePlus2, ImagePlus, Newspaper, Pencil, Send, Trash2 } from 'lucide-react';
 
 import { api } from '../api';
 import { formatDateTime } from '../format';
@@ -31,6 +31,111 @@ function BodyPair({ value, onChange }: { value: Localized; onChange: (v: Localiz
       <p className="field-note">
         Un rând gol începe un paragraf nou. Un rând care începe cu „- ” devine un punct din listă.
       </p>
+    </div>
+  );
+}
+
+/** Cât încape pe ecranul de blocare, ca la Notificări. */
+const TITLE_MAX = 50;
+const BODY_MAX = 150;
+
+/** Rezumatul, sau începutul textului, tăiat frumos la limita notificării. */
+function shortText(text: string, max: number) {
+  const clean = text.replace(/\s+/g, ' ').replace(/(^|\s)-\s/g, '$1').trim();
+  if (clean.length <= max) return clean;
+  const cut = clean.slice(0, max - 1);
+  return `${cut.slice(0, cut.lastIndexOf(' ') > 40 ? cut.lastIndexOf(' ') : cut.length)}…`;
+}
+
+/**
+ * La publicare: cu sau fără notificare. Textul notificării pornește din titlul și
+ * rezumatul articolului și se poate schimba; apăsată, notificarea deschide articolul.
+ */
+function PublishPanel({
+  article,
+  onPublish,
+  onCancel,
+}: {
+  article: Article;
+  onPublish: (notification: { title: Localized; body: Localized } | null) => Promise<void>;
+  onCancel: () => void;
+}) {
+  const pick = (ro: string, ru: string) => ({ ro, ru: ru.trim() ? ru : ro });
+  const [notify, setNotify] = useState(true);
+  const [title, setTitle] = useState<Localized>(() => {
+    const t = pick(article.title.ro, article.title.ru);
+    return { ro: shortText(t.ro, TITLE_MAX), ru: shortText(t.ru, TITLE_MAX) };
+  });
+  const [body, setBody] = useState<Localized>(() => {
+    const b = pick(article.summary.ro || article.body.ro, article.summary.ru || article.body.ru);
+    return { ro: shortText(b.ro, BODY_MAX), ru: shortText(b.ru, BODY_MAX) };
+  });
+  const [busy, setBusy] = useState(false);
+  const complete = [title.ro, title.ru, body.ro, body.ru].every((x) => x.trim());
+
+  const publish = async () => {
+    setBusy(true);
+    try {
+      await onPublish(notify ? { title, body } : null);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="publish-panel">
+      <label className="publish-check">
+        <input type="checkbox" checked={notify} onChange={(e) => setNotify(e.target.checked)} />
+        <span>
+          <strong>
+            <Bell size={16} /> Anunță clienții printr-o notificare
+          </strong>
+          <span className="hint">
+            Categoria „Noutăți despre stațiuni”. Apăsată, notificarea deschide articolul.
+          </span>
+        </span>
+      </label>
+
+      {notify ? (
+        <div className="publish-fields">
+          {LANGS.map((lang) => (
+            <div key={lang} className="pair-col">
+              <span className="pair-lang">{lang === 'ro' ? 'Română' : 'Русский'}</span>
+              <input
+                className="input"
+                value={title[lang]}
+                maxLength={120}
+                aria-label={`Titlul notificării, ${lang}`}
+                onChange={(e) => setTitle({ ...title, [lang]: e.target.value })}
+              />
+              <span className={title[lang].length > TITLE_MAX ? 'counter over' : 'counter'}>
+                {title[lang].length} / {TITLE_MAX}
+              </span>
+              <textarea
+                className="textarea"
+                rows={2}
+                value={body[lang]}
+                maxLength={400}
+                aria-label={`Textul notificării, ${lang}`}
+                onChange={(e) => setBody({ ...body, [lang]: e.target.value })}
+              />
+              <span className={body[lang].length > BODY_MAX ? 'counter over' : 'counter'}>
+                {body[lang].length} / {BODY_MAX}
+              </span>
+            </div>
+          ))}
+        </div>
+      ) : null}
+
+      <div className="form-actions">
+        <button type="button" className="btn btn-primary" disabled={busy || (notify && !complete)} onClick={publish}>
+          {notify ? <Send size={17} /> : <Eye size={17} />}
+          {busy ? 'Se publică…' : notify ? 'Publică și trimite notificarea' : 'Publică fără notificare'}
+        </button>
+        <button type="button" className="btn btn-ghost" onClick={onCancel}>
+          Renunță
+        </button>
+      </div>
     </div>
   );
 }
@@ -79,11 +184,37 @@ function ArticleEditor({
     }
   };
 
+  const [publishing, setPublishing] = useState(false);
+
+  // Retragerea e imediată; publicarea întreabă întâi dacă să anunțe și clienții.
   const togglePublished = async () => {
-    if (changed) await save();
-    await api.articles.update(article.id, { published: !article.published });
+    if (!article.published) {
+      setPublishing(true);
+      return;
+    }
+    await api.articles.update(article.id, { published: false });
     await refresh();
-    toast(article.published ? 'Articolul e din nou ciornă — nu se mai vede în aplicație' : 'Articol publicat — apare acum în aplicație');
+    toast('Articolul e din nou ciornă — nu se mai vede în aplicație');
+  };
+
+  const publish = async (notification: { title: Localized; body: Localized } | null) => {
+    if (changed) await save();
+    await api.articles.update(article.id, { published: true });
+    if (notification) {
+      await api.notifications.send({
+        audience: 'news',
+        target: `article:${article.id}`,
+        title: notification.title,
+        body: notification.body,
+      });
+    }
+    await refresh();
+    setPublishing(false);
+    toast(
+      notification
+        ? 'Articol publicat și notificare trimisă — apar acum în aplicație'
+        : 'Articol publicat — apare acum în aplicație',
+    );
   };
 
   const uploadCover = async (files: FileList | null) => {
@@ -183,7 +314,15 @@ function ArticleEditor({
         </p>
       ) : null}
 
-      <div className="form-actions">
+      {publishing ? (
+        <PublishPanel
+          article={draft}
+          onPublish={publish}
+          onCancel={() => setPublishing(false)}
+        />
+      ) : null}
+
+      <div className="form-actions" hidden={publishing}>
         <button type="button" className="btn btn-primary" disabled={!changed || !hasTitle || saving} onClick={save}>
           {saving ? 'Se salvează…' : 'Salvează'}
         </button>

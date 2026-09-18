@@ -2691,3 +2691,59 @@ input[type='number']::-webkit-outer-spin-button {
   font-size: 16px;
   line-height: 1.6;
 }
+
+/* ── Publicarea unui articol, cu sau fără notificare ──────────────────────── */
+
+.publish-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px;
+  border-radius: var(--radius);
+  background: var(--chip-blue);
+  animation: pop 0.18s var(--ease);
+}
+
+.publish-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  cursor: pointer;
+}
+
+.publish-check input {
+  width: 22px;
+  height: 22px;
+  margin-top: 2px;
+  accent-color: var(--navy);
+  flex: none;
+}
+
+.publish-check strong {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.publish-check .hint {
+  display: block;
+  margin-top: 2px;
+}
+
+.publish-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.publish-fields .textarea {
+  min-height: 64px;
+}
+
+@media (max-width: 820px) {
+  .publish-fields {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

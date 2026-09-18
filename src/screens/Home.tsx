@@ -12,7 +12,7 @@ import { useApp } from '../AppState';
 import { nightsLabel } from '../i18n';
 import { LOW_SEATS, type Resort } from '../data';
 import { initials } from './Profile';
-import { ArticleCard } from './Articles';
+import { ArticleTile } from './Articles';
 import { Icon } from '../components/Icon';
 import { colors, gradients, radius, shadow, space, TOUCH, type } from '../theme';
 
@@ -148,7 +148,33 @@ export function Home() {
           </View>
         </Press>
 
-        <Departures resortId={featured.id} />
+        {/*
+          Sfaturile, imediat sub oferta săptămânii: aici le vede oricine deschide aplicația.
+          Cardurile se derulează în lateral, ca să nu împingă plecările mult în jos.
+        */}
+        {articles.length > 0 ? (
+          <>
+            <View style={styles.sectionRow}>
+              <Text style={styles.sectionTitle}>{t.articlesTitle}</Text>
+              <Pressable onPress={() => go('articles')} style={styles.linkButton} accessibilityRole="button">
+                <Text style={styles.link}>{t.seeAll}</Text>
+                <Icon name="arrow-right" size={17} color={colors.link} />
+              </Pressable>
+            </View>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              style={styles.tilesScrollBox}
+              contentContainerStyle={styles.articleScroll}
+            >
+              {articles.slice(0, 6).map((article) => (
+                <ArticleTile key={article.id} article={article} />
+              ))}
+            </ScrollView>
+          </>
+        ) : null}
+
+        <Departures resortId={featured.id} compact />
 
         <View style={styles.sectionRow}>
           <Text style={styles.sectionTitle}>{t.homeResorts}</Text>
@@ -182,23 +208,6 @@ export function Home() {
           </ScrollView>
         )}
 
-        {/* Sfaturile: primele trei pe Acasă, toate în lista lor. Fără articole, secțiunea lipsește. */}
-        {articles.length > 0 ? (
-          <>
-            <View style={styles.sectionRow}>
-              <Text style={styles.sectionTitle}>{t.articlesTitle}</Text>
-              <Pressable onPress={() => go('articles')} style={styles.linkButton} accessibilityRole="button">
-                <Text style={styles.link}>{t.seeAll}</Text>
-                <Icon name="arrow-right" size={17} color={colors.link} />
-              </Pressable>
-            </View>
-            <View style={styles.articles}>
-              {articles.slice(0, 3).map((article) => (
-                <ArticleCard key={article.id} article={article} />
-              ))}
-            </View>
-          </>
-        ) : null}
       </ScrollView>
     </View>
   );
@@ -321,7 +330,8 @@ const styles = StyleSheet.create({
   tiles: { flexDirection: 'row', gap: space.md, marginTop: space.md },
   // Coloană, nu rând: cardul se întinde pe toată lățimea celulei.
   tileCell: { flex: 1 },
-  articles: { gap: space.md, marginTop: space.md },
+  // Loc și pentru umbra cardurilor, altfel derularea o taie jos.
+  articleScroll: { gap: space.md, paddingHorizontal: space.lg, paddingBottom: space.md },
   // Derularea ajunge până la marginile ecranului, dar primul card stă aliniat cu textul.
   tilesScrollBox: { marginHorizontal: -space.lg, marginTop: space.md },
   tilesScroll: { gap: space.md, paddingHorizontal: space.lg },
